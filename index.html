@@ -1,0 +1,1452 @@
+<!-- 
+  PCIC DIGITAL INSURANCE APPLICATION
+  Version: 1.0.2
+  Last Updated: January 29, 2026
+  
+  VERSION HISTORY://edit version in line 1498
+  ------------------------------------------------------------------------------
+  v1.1.2 (2026-01-30)-  Embeded the PCIC RO10 logo to the script, fixed one line edit for version
+  v1.0.2 (2026-01-29) - [FIX] Replaced 'Suffix' with 'Middle Name'; Fixed Save bugs; Verified PDF & Summary.
+  v1.0.1 (2026-01-28) - [FEAT] Added Farm Selector; Fixed blank PDF issues.
+  v1.0.0 (2026-01-01) - Initial Release.
+  ------------------------------------------------------------------------------
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCIC Ro10 Digital Insurance Application v1.2.1 </title>
+    <!-- Core Libraries (Offline) -->
+    <script src="lib/dexie.js"></script>
+    <script src="lib/papaparse.min.js"></script>
+    <script src="lib/signature_pad.js"></script>
+    <script src="lib/jspdf.js"></script>
+    <script src="lib/jspdf-autotable.js"></script>
+    <script src="lib/pdf-lib.js"></script>
+    <script src="farm_selector_functions.js"></script>
+    <script src="db_manager.js"></script>
+    <script src="csv_handler.js"></script>
+    <script src="address_autocomplete.js"></script>
+    <link rel="stylesheet" href="lib/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1b5e20">
+</head>
+
+
+<body>
+    <!-- Sidebar Overlay for Floating Mode -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div id="sidebar">
+        <div class="nav-items">
+            <button class="nav-btn active" id="nav-enrollment" onclick="showView('enrollment')"><span>📝</span>
+                Search Farmer</button>
+            <button class="nav-btn" id="nav-enrollment-form" onclick="showView('enrollment-form')"><span>📋</span>
+                Enrollment Form</button>
+            <button class="nav-btn" id="nav-summary" onclick="showView('summary')">📊 Summary</button>
+            <button class="nav-btn admin-only" id="nav-database" onclick="showView('database')">📁 Database</button>
+            <button class="nav-btn" id="nav-settings" onclick="showView('settings')">⚙️ Settings</button>
+            <button class="nav-btn" id="nav-about" onclick="showView('about')">ℹ️ Help / About</button>
+        </div>
+        <div style="padding: 15px; border-top: 1px solid #eee; display: none;">
+            <!-- Indicator moved to header -->
+        </div>
+    </div>
+
+    <div id="workspace">
+        <div class="app-header">
+            <div class="header-left">
+                <button onclick="toggleSidebar()" class="menu-btn"><i class="fas fa-bars"></i></button>
+
+                <div style="display:flex; flex-direction:column; margin-left:10px;">
+                    <h2 style="margin:0; font-size: 1.1rem; text-align: left;">PCIC R10 DIGITAL APPLICATION <span
+                            id="lbl_version_sidebar"></span></h2>
+                    <div id="db-indicator"
+                        style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.85); margin-top:2px;">
+                        Initializing...</div>
+                </div>
+            </div>
+            <img src="asset/sidebar_logo.png" class="app-logo" alt="PCIC Logo">
+        </div>
+        <div class="month-tabs-row">
+            <!-- GLOBAL DASHBOARD (Visible in all views) -->
+            <div id="global-dashboard" style="display: none;">
+                <div style="font-size:11px; color:#666; padding:10px;">Loading Dashboard...</div>
+            </div>
+        </div>
+
+        <!-- WELCOME DASHBOARD VIEW -->
+        <div id="view-welcome" class="content-area">
+            <div class="welcome-content">
+                <div class="welcome-hero">
+                    <h1 class="welcome-title">PCIC RO10 DIGITAL INSURANCE APPLICATION</h1>
+                    <p class="welcome-subtitle">A streamlined digital solution for PCIC Region 10 designed to accelerate
+                        agricultural insurance processing through automated data management.</p>
+                </div>
+
+                <div class="welcome-actions">
+                    <button class="btn-guide" onclick="showUserGuide()">
+                        <i class="fas fa-book"></i> User Guide
+                    </button>
+                    <button class="btn-proceed" onclick="showView('enrollment')">
+                        Proceed to Search Farmer <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENROLLMENT VIEW -->
+
+        <div id="view-enrollment" class="content-area">
+            <!-- SEARCH SECTION -->
+            <div class="card" id="search-card">
+                <div class="section-title">Identify Farmer (Wildcard Filter)</div>
+                <div class="grid-3">
+                    <div class="input-group"><label>RSBSA / Farmer ID</label><input type="text" id="s_id"
+                            placeholder="Contains..."></div>
+                    <div class="input-group"><label>Last Name</label><input type="text" id="s_lname"
+                            placeholder="Contains..."></div>
+                    <div class="input-group"><label>First Name</label><input type="text" id="s_fname"
+                            placeholder="Contains..."></div>
+                </div>
+                <div class="grid-3" style="margin-top:10px;">
+                    <div class="input-group"><label>Province</label><input type="text" id="s_prov"
+                            placeholder="Contains..."></div>
+                    <div class="input-group"><label>Municipality</label><input type="text" id="s_mun"
+                            placeholder="Contains..."></div>
+                    <div class="input-group"><label>Barangay</label><input type="text" id="s_bgy"
+                            placeholder="Contains..."></div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="searchFarmer()" class="btn-submit"
+                        style="background:#333; flex: 1; padding:10px;">SEARCH DATABASE</button>
+                    <button class="btn-submit" onclick="confirmNewApplicant()"
+                        style="background:var(--primary); flex: 1; padding:10px;">
+                        NEW APPLICANT
+                    </button>
+                </div>
+
+                <!-- RESULTS LIST (Dynamic) -->
+                <div id="search-results-panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                        <div class="section-title" style="margin-bottom:0; color:#666; border-bottom:none;">Matches
+                            Found</div>
+                        <button class="btn-back" onclick="backToSearchInput()" style="margin-bottom:0;">
+                            <span>&larr;</span> Back to Filter
+                        </button>
+                    </div>
+                    <div id="search-results-list" style="margin-top:10px;"></div>
+                </div>
+            </div>
+
+            <!-- ENROLLMENT FORM SECTION -->
+            <div id="view-enrollment-form" style="display:none;">
+
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:#fff; padding:10px; border-radius:8px; border:1px solid #eee;">
+                    <button class="btn-back" onclick="backToResults()" style="margin:0; padding:10px 20px;">
+                        ← Back to Results
+                    </button>
+
+                    <div class="step-nav"
+                        style="margin:0; background:none; padding:0; flex:1; justify-content:flex-center; gap:8px;">
+                        <div class="step-item active" onclick="goToStep('farmer-info')">
+                            <span class="step-number">1</span>
+                            <span>Farmer Info</span>
+                        </div>
+                        <div class="step-item" onclick="goToStep('policy-details')">
+                            <span class="step-number">2</span>
+                            <span>Policy Details</span>
+                        </div>
+                        <div class="step-item" onclick="goToStep('farm-details')">
+                            <span class="step-number">3</span>
+                            <span>Farm Details</span>
+                        </div>
+                        <div class="step-item" onclick="goToStep('signature')">
+                            <span class="step-number">4</span>
+                            <span>Signature</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Identification -->
+                <div class="card" id="farmer-info">
+                    <!-- Hidden Metadata for Summary -->
+                    <!-- Hidden Metadata for Summary -->
+                    <input type="hidden" id="f_farm_name_hidden">
+                    <input type="hidden" id="f_st_farm">
+                    <div class="section-title">Farmer Information</div>
+
+                    <div id="photo-preview-wrap">
+                        <div id="farmer-photo-preview">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="input-group">
+                            <label>Farmer Photo</label>
+                            <button type="button" class="btn-camera" onclick="openCamera()">
+                                <i class="fas fa-camera"></i> Take Photo
+                            </button>
+                            <!-- Enhanced: Fallback input for mobile/tablets in insecure contexts -->
+                            <input type="file" id="f_photo_fallback" accept="image/*" capture="environment"
+                                style="display: none;" onchange="handleFallbackPhoto(this)">
+                            <input type="hidden" id="f_photo_data">
+                        </div>
+                    </div>
+
+                    <div class="grid-5">
+
+                        <div class="input-group"><label>Farmer ID</label><input type="text" id="f_id" readonly>
+                        </div>
+                        <div class="input-group"><label>RSBSA NO.</label><input type="text" id="f_rsbsa"></div>
+                        <div class="input-group"><label>Last Name</label><input type="text" id="f_lname" readonly>
+                        </div>
+                        <div class="input-group"><label>First Name</label><input type="text" id="f_fname" readonly>
+                        </div>
+                        <div class="input-group"><label>Extension</label><input type="text" id="f_extname" readonly>
+                        </div>
+                        <div class="input-group"><label>Middle Name</label><input type="text" id="f_midname"
+                                placeholder="Middle Name"></div>
+                        <div class="input-group"><label>Sex</label>
+                            <select id="f_sex">
+                                <option value="">--</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Birthdate</label><input type="date" id="f_bday"></div>
+                        <div class="input-group"><label>Mobile No.</label><input type="tel" id="f_mobile"
+                                placeholder="09xxxxxxxxx" maxlength="11"></div>
+                    </div>
+                    <div class="grid-4" style="margin-top:10px;">
+                        <div class="input-group"><label>Province</label>
+                            <input type="text" id="f_prov_farmer" list="province-list"
+                                placeholder="Type to search province..."
+                                onchange="filterMunicipalities('f_prov_farmer', 'municipality-list')"
+                                autocomplete="off">
+                        </div>
+                        <div class="input-group"><label>Municipality</label>
+                            <input type="text" id="f_mun_farmer" list="municipality-list"
+                                placeholder="Type to search municipality..." onchange="onMunicipalityChange()"
+                                autocomplete="off">
+                        </div>
+                        <div class="input-group"><label>Barangay</label>
+                            <input type="text" id="f_brgy_farmer" list="barangay-list"
+                                placeholder="Type to search barangay..." autocomplete="off">
+                            <datalist id="barangay-list"></datalist>
+                        </div>
+                        <div class="input-group"><label>Street/Purok</label><input type="text" id="f_st_farmer"
+                                placeholder="Enter street or purok"></div>
+                    </div>
+                    <div class="grid-2" style="margin-top:10px;">
+                        <div class="input-group"><label>Civil Status</label>
+                            <select id="f_civil" onchange="handleCivilStatus()">
+                                <option value="">-- Select --</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Widow/er">Widow/er</option>
+                                <option value="Separated">Separated</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Special Sector</label>
+                            <select id="f_sector">
+                                <option value="N/A">-- None --</option>
+                                <option value="IP">IP (Indigenous People)</option>
+                                <option value="PWD">PWD</option>
+                                <option value="SC">Senior Citizen</option>
+                                <option value="YOUTH">Youth</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-2" style="margin-top:10px; display:none;" id="spouse_wrap">
+                        <div class="input-group"><label>Spouse Name</label><input type="text" id="f_spouse"
+                                placeholder="Enter spouse name"></div>
+                        <div></div>
+                    </div>
+                    <div class="grid-3" style="margin-top:10px;">
+                        <div class="input-group"><label>Beneficiary</label><input type="text" id="f_bene"></div>
+                        <div class="input-group"><label>Beneficiary Relationship</label><input type="text"
+                                id="f_bene_rel"></div>
+                        <div class="input-group"><label>Beneficiary Birthdate</label><input type="date"
+                                id="f_bene_bday"></div>
+                    </div>
+                    <div class="grid-3" style="margin-top:10px;">
+                        <div class="input-group"><label>Guardian (if Minor/PWD)</label><input type="text"
+                                id="f_guardian" placeholder="Name of Guardian"></div>
+                        <div class="input-group"><label>Guardian Relationship</label><input type="text"
+                                id="f_guardian_rel" placeholder="Relationship"></div>
+                        <div class="input-group"><label>Guardian Birthdate</label><input type="date"
+                                id="f_guardian_bday"></div>
+                    </div>
+
+                    <div class="grid-2" style="margin-top:10px;">
+                        <div class="input-group"><label>Payment Mode</label>
+                            <select id="f_mop">
+                                <option>Palawan Express</option>
+                                <option>GCash</option>
+                                <option>Landbank</option>
+                                <option>Others</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Account No.</label><input type="text" id="f_acc"
+                                placeholder="Bank/E-Wallet Acc"></div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-submit" onclick="goToStep('policy-details')"
+                            style="width:auto; padding:12px 40px; font-size:13px; margin:0; font-weight:bold;">
+                            Next: Policy Details →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Farm Details -->
+                <div class="card" id="farm-details">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div class="section-title" style="margin-bottom:0;">Farm Details</div>
+                        <button class="btn-back" onclick="backToSearchInput()" style="margin-bottom:0;">
+                            <span>&larr;</span> Back to Search
+                        </button>
+                    </div>
+
+                    <!-- NEW: Farm Selector for Existing Farmers -->
+                    <div id="farm_selector_container"
+                        style="display:none; margin-bottom:15px; padding:10px; background:#e8f5e9; border:1px solid #c8e6c9; border-radius:4px;">
+                        <label style="font-weight:bold; color:var(--primary);">Select from Existing Farms:</label>
+                        <select id="f_farm_select" onchange="onFarmSelect()"
+                            style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;">
+                            <option value="">-- Select a Farm to Auto-fill --</option>
+                        </select>
+                    </div>
+
+                    <div class="grid-4">
+                        <div class="input-group"><label>North Boundary</label><input type="text" id="f_north"></div>
+                        <div class="input-group"><label>South Boundary</label><input type="text" id="f_south"></div>
+                        <div class="input-group"><label>East Boundary</label><input type="text" id="f_east"></div>
+                        <div class="input-group"><label>West Boundary</label><input type="text" id="f_west"></div>
+                    </div>
+                    <div class="grid-4" style="margin-top:10px;">
+
+                        <div class="input-group"><label>Farm Province</label><input type="text" id="f_farm_prov"
+                                list="province-list"
+                                onchange="filterMunicipalities('f_farm_prov', 'municipality-list')"></div>
+                        <div class="input-group"><label>Farm Municipality</label><input type="text" id="f_farm_mun"
+                                list="municipality-list">
+                        </div>
+                        <div class="input-group"><label>Farm Barangay</label><input type="text" id="f_farm_bgy">
+                        </div>
+                        <div class="input-group"><label>Farm Purok/Sitio</label><input type="text" id="f_farm_purok">
+                        </div>
+                    </div>
+                    <div class="grid-2" style="margin-top:10px;">
+                        <div class="input-group"><label>Farm ID</label><input type="text" id="f_farmid" readonly>
+                        </div>
+                        <div class="input-group"><label>Georef ID</label><input type="text" id="f_georef"></div>
+                    </div>
+                    <div class="grid-2" style="margin-top:10px;">
+                        <div class="input-group"><label>Area (ha)</label><input type="number" step="0.01" id="f_area"
+                                oninput="calculateTotalCover()" style="background:#f9f9f9;"></div>
+                        <div class="input-group"><label>Total Amount of Cover (Auto)</label><input type="number"
+                                id="f_amount_cover" step="0.01" readonly
+                                style="background:#f1f8e9; font-weight:bold; color:var(--primary);"></div>
+                    </div>
+                    <div style="display:flex; align-items:stretch; gap:15px; margin-top:20px;">
+                        <button class="btn-back" onclick="goToStep('farmer-info')"
+                            style="flex:1; margin:0; height:auto; padding:12px; font-size:13px;">
+                            ← Back to Farmer Info
+                        </button>
+                        <button class="btn-submit" onclick="goToStep('signature')"
+                            style="flex:1; margin:0; padding:12px; font-size:13px;">
+                            Next: Signature →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NEW MODULES (Hidden by Default) -->
+                <!-- ADSS Details -->
+                <div class="card" id="adss-details" style="display:none;">
+                    <div class="section-title">ADSS Insurance Details</div>
+
+                    <div class="grid-2">
+                        <div class="input-group"><label>Occupation</label><input type="text" id="adss_occupation"
+                                placeholder="Current Occupation"></div>
+                        <div class="input-group"><label>Work Address</label><input type="text" id="adss_work_addr"
+                                placeholder="Workplace Address"></div>
+                    </div>
+
+                    <div class="grid-2" style="margin-top:10px;">
+                        <div class="input-group">
+                            <label>Premium Amount (PHP)</label>
+                            <input type="number" id="adss_premium" oninput="calculateADSSCover()" placeholder="0.00">
+                        </div>
+                        <div class="input-group">
+                            <label>Amount Cover (Auto)</label>
+                            <input type="number" id="adss_cover" readonly style="background:#f1f8e9; font-weight:bold;">
+                        </div>
+                    </div>
+
+                    <div style="margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;">
+                        <label style="font-weight:bold; color:#555;">Primary Beneficiary</label>
+                        <div class="grid-3">
+                            <div class="input-group"><label>Name</label><input type="text" id="adss_ben1_name">
+                            </div>
+                            <div class="input-group"><label>Relationship</label><input type="text" id="adss_ben1_rel">
+                            </div>
+                            <div class="input-group"><label>Birthdate</label><input type="date" id="adss_ben1_bday">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:10px;">
+                        <label style="font-weight:bold; color:#555;">Secondary Beneficiary</label>
+                        <div class="grid-3">
+                            <div class="input-group"><label>Name</label><input type="text" id="adss_ben2_name">
+                            </div>
+                            <div class="input-group"><label>Relationship</label><input type="text" id="adss_ben2_rel">
+                            </div>
+                            <div class="input-group"><label>Birthdate</label><input type="date" id="adss_ben2_bday">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="margin-top:15px; background:#fff3e0; padding:10px; border-radius:4px; border:1px solid #ffe0b2;">
+                        <div style="display:flex; align-items:center;">
+                            <input type="checkbox" id="adss_is_minor" onchange="toggleParentSignature()"
+                                style="width:18px; height:18px; margin-right:10px;">
+                            <label for="adss_is_minor" style="font-weight:bold; color:#e65100; cursor:pointer;">Check if
+                                Insured is a MINOR</label>
+                        </div>
+                        <p style="font-size:11px; color:#666; margin:5px 0 0 28px;">
+                            If checked, a <strong>Parent/Guardian Signature</strong> overlay will be required in the
+                            Consent section.
+                        </p>
+                    </div>
+
+                    <div style="display:flex; align-items:stretch; gap:10px; margin-top:15px;">
+                        <button class="btn-back" onclick="goToStep('policy-details')"
+                            style="margin:0; height:auto; padding:0 20px; flex:0 0 auto;">
+                            ← Back to Policy Selection
+                        </button>
+                        <button class="btn-submit" onclick="goToStep('signature')"
+                            style="flex:1; margin:0; padding:12px; font-size:13px;">
+                            Next: Signature →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Livestock Details -->
+                <div class="card" id="livestock-details" style="display:none;">
+                    <div class="section-title">Livestock Insurance Details</div>
+
+                    <div class="grid-4">
+                        <div class="input-group"><label>Province</label>
+                            <input type="text" id="live_prov" list="province-list"
+                                placeholder="Type to search province..."
+                                onchange="filterMunicipalities('live_prov', 'municipality-list')" autocomplete="off">
+                        </div>
+                        <div class="input-group"><label>Municipality</label>
+                            <input type="text" id="live_mun" list="municipality-list"
+                                placeholder="Type to search municipality..." onchange="onLiveMunicipalityChange()"
+                                autocomplete="off">
+                        </div>
+                        <div class="input-group"><label>Barangay</label>
+                            <input type="text" id="live_bgy" list="barangay-list"
+                                placeholder="Type to search barangay..." autocomplete="off">
+                        </div>
+                        <div class="input-group"><label>Sitio/Purok</label><input type="text" id="live_sitio"></div>
+                    </div>
+                    <div class="grid-2" style="margin-bottom:12px;">
+                        <div class="input-group">
+                            <label>Type of Animals</label>
+                            <select id="live_animal_type" onchange="refreshAnimalClassifications()">
+                                <option value="">-- Select --</option>
+                                <option>Swine</option>
+                                <option>Goat</option>
+                                <option>Sheep</option>
+                                <option>Poultry</option>
+                                <option>Cattle</option>
+                                <option>Carabao</option>
+                                <option>Horse</option>
+                                <option>Others</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <label style="font-weight:bold; color:var(--primary);">List of Animals to Insure</label>
+                            <button onclick="addAnimalRow()"
+                                style="background:#4caf50; color:white; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer;">
+                                <i class="fas fa-plus"></i> Add Animal
+                            </button>
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table id="animal_table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                                <thead style="background:#f5f5f5;">
+                                    <tr>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">Classification
+                                        </th>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">
+                                            Earmark/Tag/Bldg.
+                                            Number</th>
+                                        <th colspan="2" style="padding:5px; border:1px solid #ddd; text-align:center;">
+                                            Total Number</th>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">Age/Age group
+                                        </th>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">Date of Birth
+                                        </th>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">Breed</th>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">Basic Color</th>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">Amount Cover
+                                        </th>
+                                        <th rowspan="2" style="padding:5px; border:1px solid #ddd;">Action</th>
+                                    </tr>
+                                    <tr>
+                                        <th style="padding:5px; border:1px solid #ddd; font-size:10px;">Male</th>
+                                        <th style="padding:5px; border:1px solid #ddd; font-size:10px;">Female</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="animal_list_body">
+                                    <!-- Dynamic Rows Here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; align-items:stretch; gap:10px; margin-top:15px;">
+                        <button class="btn-back" onclick="goToStep('policy-details')"
+                            style="margin:0; height:auto; padding:0 20px; flex:0 0 auto;">
+                            ← Back to Policy Selection
+                        </button>
+                        <button class="btn-submit" onclick="goToStep('signature')"
+                            style="flex:1; margin:0; padding:12px; font-size:13px;">
+                            Next: Signature →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Banca Details -->
+                <div class="card" id="banca-details" style="display:none;">
+                    <div class="section-title">Banca/Boat Insurance</div>
+
+                    <div class="grid-3">
+                        <div class="input-group"><label>Home Port / Fishing Area</label><input type="text"
+                                id="banca_port" placeholder="Coastal Area/Barangay"></div>
+                        <div class="input-group"><label>Usage</label>
+                            <input type="text" id="banca_usage" placeholder="e.g. Fishing, Commercial">
+                        </div>
+                        <div class="input-group"><label>Tonnage</label><input type="number" id="banca_crew"
+                                placeholder="1"></div>
+                    </div>
+
+                    <div class="section-title" style="margin-top:20px; font-size:11px;">Boat Description</div>
+                    <div class="grid-4">
+                        <div class="input-group"><label>Material</label>
+                            <select id="banca_material" onchange="calculateBancaCover()">
+                                <option>Wood</option>
+                                <option>Fiberglass</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Type of Boat</label>
+                            <select id="banca_type" onchange="calculateBancaCover()">
+                                <option>Motorized</option>
+                                <option>Non-Motorized</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Motor No</label><input type="text" id="banca_hp"
+                                placeholder="e.g. XXXXX"></div>
+                        <div class="input-group"><label>Chassis No</label><input type="text" id="banca_chassis"
+                                placeholder="XXXXX"></div>
+                        <div class="input-group"><label>Age of Boat / Year Built</label><input type="text"
+                                id="banca_age" placeholder="e.g. 2 years / 2022"></div>
+                        <div class="input-group"><label>Boat Color</label><input type="text" id="banca_color"
+                                placeholder="e.g. Blue/White"></div>
+                    </div>
+
+                    <div class="section-title" style="margin-top:20px; font-size:11px;">Dimensions & Capacity
+                        (Meters)
+                    </div>
+                    <div class="grid-3" style="margin-top:10px;">
+                        <div class="input-group"><label>Length (m)</label><input type="number" id="banca_length"
+                                step="0.01"></div>
+                        <div class="input-group"><label>Width (m)</label><input type="number" id="banca_width"
+                                step="0.01">
+                        </div>
+                        <div class="input-group"><label>Depth (m)</label><input type="number" id="banca_depth"
+                                step="0.01">
+                        </div>
+                    </div>
+
+                    <div style="margin-top:10px;">
+                        <div class="input-group"><label>Others / Specifications</label>
+                            <textarea id="banca_others" style="width:100%; min-height:60px;"
+                                placeholder="Any additional boat details..."></textarea>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background:#f9f9f9; padding:10px; margin-top:10px; border:1px solid #ddd; border-radius:4px;">
+                        <b style="font-size:11px;">Unit Converter (Feet to Meters)</b>
+                        <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
+                            <input type="number" id="util_feet" placeholder="Feet" style="width:80px; padding:4px;">
+                            <span>ft = </span>
+                            <input type="number" id="util_meters" placeholder="Meters" readonly
+                                style="width:80px; padding:4px; background:#eee;">
+                            <button onclick="convertFeetToMeters()"
+                                style="padding:4px 8px; font-size:10px; background:#333; color:white; border:none; cursor:pointer;">Convert</button>
+                        </div>
+                    </div>
+
+                    <div class="section-title" style="margin-top:20px; font-size:11px;">Coverage & Beneficiary</div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Amount Cover</label><input type="number" id="banca_cover">
+                        </div>
+                    </div>
+                    <div class="grid-2" style="margin-top:10px;">
+                        <div class="input-group"><label>Period From</label><input type="date" id="banca_period_from">
+                        </div>
+                        <div class="input-group"><label>Period To</label><input type="date" id="banca_period_to">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Beneficiary (Primary)</label><input type="text"
+                                id="banca_bene_primary" placeholder="Full Name"></div>
+                        <div class="input-group"><label>Relationship</label><input type="text" id="banca_bene_rel"
+                                placeholder="e.g. Spouse"></div>
+                    </div>
+
+                    <div class="section-title" style="margin-top:20px; font-size:11px;">Mortgage Details (If
+                        Applicable)
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group"><label>Mortgage To</label><input type="text" id="banca_mortgage_to"
+                                placeholder="Bank / Institution Name"></div>
+                        <div class="input-group"><label>Branch</label><input type="text" id="banca_mortgage_branch"
+                                placeholder="Branch Office"></div>
+                    </div>
+                    <div class="input-group" style="margin-top:10px;">
+                        <label>Mortgage Address</label>
+                        <input type="text" id="banca_mortgage_addr" placeholder="Full address of the institution">
+                    </div>
+
+                    <div style="display:flex; align-items:stretch; gap:10px; margin-top:15px;">
+                        <button class="btn-back" onclick="goToStep('policy-details')"
+                            style="margin:0; height:auto; padding:0 20px; flex:0 0 auto;">
+                            ← Back to Policy Selection
+                        </button>
+                        <button class="btn-submit" onclick="goToStep('signature')"
+                            style="flex:1; margin:0; padding:12px; font-size:13px;">
+                            Next: Signature →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Policy Encoding (MODIFIED for Multi-line) -->
+                <div class="card" id="policy-details">
+                    <div class="section-title">Insurance Line Selection</div>
+
+                    <div class="input-group"
+                        style="margin-bottom: 20px; border-bottom:1px dashed #ccc; padding-bottom:15px;">
+                        <label style="color:var(--primary); font-weight:bold;">SELECT INSURANCE LINE</label>
+                        <select id="f_insurance_line" onchange="toggleInsuranceView()"
+                            style="font-size:16px; padding:12px; border:2px solid var(--primary);">
+                            <option value="">-- Select Insurance Type --</option>
+                            <option value="Crop">Crop Insurance</option>
+                            <option value="Livestock">Livestock Insurance</option>
+                            <option value="ADSS">ADSS (Life/Accident)</option>
+                            <option value="Banca">Banca (Boat) Insurance</option>
+                        </select>
+                    </div>
+
+                    <!-- CROP SECTION (Default) -->
+                    <div id="crop-section" style="display:none;">
+                        <div class="input-group" style="margin-bottom: 20px;">
+                            <label>Select Crop Type</label>
+                            <select id="f_crop_unified" onchange="handleCropUnified()"
+                                style="font-size:14px; padding:10px;">
+                                <option value="">-- Choose Crop --</option>
+                            </select>
+                            <input type="hidden" name="crop_type" id="hidden_crop_type">
+                        </div>
+
+                        <!-- Crop Sub-Type (shown for Rice, Corn, etc.) -->
+                        <div id="crop_subtype_wrap" class="input-group" style="display:none; margin-bottom:12px;">
+                            <label>Crop Sub-Type / Classification</label>
+                            <select id="crop_subtype" style="font-size:14px; padding:10px;">
+                                <option value="">-- Select Type --</option>
+                            </select>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="input-group"><label>Planting Type</label><select id="f_top">
+                                    <option>Direct Seeding</option>
+                                    <option>Transplanting</option>
+                                </select></div>
+                            <div class="input-group"><label>Variety</label><input type="text" id="f_variety"></div>
+                        </div>
+                        <div class="grid-2" style="margin-top:12px;">
+                            <div class="input-group"><label>Date Sowing</label><input type="date" id="sow_date">
+                            </div>
+                            <div class="input-group"><label>Date Planting</label><input type="date" id="f_plant">
+                            </div>
+                        </div>
+                        <div class="hvc-only" id="trees_wrap" style="margin-top:12px; max-width: 50%;">
+                            <div class="input-group"><label>Number of Trees/Hills</label><input type="number"
+                                    id="f_trees" min="0" step="1" placeholder="For HVC only"></div>
+                        </div>
+                        <div style="display:flex; align-items:stretch; gap:15px; margin-top:20px;">
+                            <button class="btn-back" onclick="goToStep('farmer-info')"
+                                style="flex:1; margin:0; height:auto; padding:12px; font-size:13px;">
+                                ← Back to Farmer Info
+                            </button>
+                            <button class="btn-submit" onclick="goToStep('farm-details')"
+                                style="flex:1; margin:0; padding:12px; font-size:13px;">
+                                Next: Farm Details →
+                            </button>
+                        </div>
+                    </div>
+                </div> <!-- End policy-details -->
+
+                <!-- Authorization -->
+                <div class="card" id="signature">
+                    <div class="section-title">CERTIFICATION AND DATA PRIVACY CONSENT STATEMENT (Kindly check the
+                        boxes if you agree)</div>
+                    <div
+                        style="font-size:12px; color:#333; background:#fff; padding:15px; border:1px solid #ccc; margin-bottom:15px; border-radius:4px;">
+
+                        <!-- Item 1: Certification -->
+                        <div style="display:flex; align-items:flex-start; margin-bottom: 10px;">
+                            <input type="checkbox" id="consent_certify"
+                                style="margin-top:3px; margin-right:10px; cursor:pointer;">
+                            <label for="consent_certify" style="text-align:justify; line-height:1.4; cursor:pointer;">
+                                I hereby certify that the foregoing answers and statements are complete, true and
+                                correct. If the application is approved, the insurance shall be deemed based upon
+                                the
+                                statements contained herein. I further agree that PCIC reserves the right to reject
+                                and/or void the insurance if found that there is fraud/concealment/misrepresentation
+                                on
+                                this statement material to the risk.
+                            </label>
+                        </div>
+
+                        <!-- Item 2: Data Privacy -->
+                        <div style="display:flex; align-items:flex-start; margin-bottom: 10px;">
+                            <input type="checkbox" id="consent_privacy"
+                                style="margin-top:3px; margin-right:10px; cursor:pointer;">
+                            <label for="consent_privacy" style="text-align:justify; line-height:1.4; cursor:pointer;">
+                                By submitting this application, I hereby consent to the collection, use, processing,
+                                and
+                                disclosure of my sensitive personal data in accordance with the Data Privacy Act of
+                                2012.
+                            </label>
+                        </div>
+
+                        <!-- Deed of Assignment Header -->
+                        <div
+                            style="font-weight:bold; margin-top:15px; margin-bottom:8px; font-style:italic; border-top:1px dashed #eee; padding-top:10px;">
+                            Deed of Assignment for borrowing farmers (if applicable)
+                        </div>
+
+                        <!-- Item 3: Deed of Assignment -->
+                        <div style="display:flex; align-items:flex-start;">
+                            <input type="checkbox" id="consent_assignment"
+                                style="margin-top:3px; margin-right:10px; cursor:pointer;">
+                            <label for="consent_assignment"
+                                style="text-align:justify; line-height:1.4; cursor:pointer;">
+                                I hereby assign all or part of my rights, title, and interest in this insurance
+                                coverage
+                                to the Assignee (Lender) stated above. This assignment includes any indemnities that
+                                may
+                                become payable under the terms of the policy. I acknowledge that this assignment is
+                                made
+                                in accordance with the terms and conditions of the insurance policy and is subject
+                                to
+                                the approval of the insurance provider.
+                            </label>
+                        </div>
+
+                    </div>
+                    <div class="section-title" id="farmer-sig-label">Farmer Signature</div>
+                    <div class="sig-container">
+                        <button class="fullscreen-btn" onclick="toggleFullScreenSig('sig-canvas')"
+                            title="Toggle Full Screen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <canvas id="sig-canvas"></canvas>
+                    </div>
+                    <button onclick="signaturePad.clear()"
+                        style="font-size: 10px; margin-top:5px; border:1px solid #ccc; cursor:pointer; background:none; padding:4px;">Clear
+                        Signature</button>
+
+                    <div id="guardian-sig-section" style="display:none; margin-top:20px;">
+                        <div class="section-title">Guardian Signature (Required for Minor)</div>
+                        <div class="sig-container">
+                            <button class="fullscreen-btn" onclick="toggleFullScreenSig('guardian-sig-canvas')"
+                                title="Toggle Full Screen">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                            <canvas id="guardian-sig-canvas"></canvas>
+                        </div>
+                        <button onclick="guardianSignaturePad.clear()"
+                            style="font-size: 10px; margin-top:5px; border:1px solid #ccc; cursor:pointer; background:none; padding:4px;">Clear
+                            Guardian Signature</button>
+                    </div>
+                    <div style="display:flex; align-items:stretch; gap:15px; margin-top:20px;">
+                        <button class="btn-back" onclick="backFromSignature()"
+                            style="flex:1; margin:0; height:auto; padding:12px; font-size:13px;">
+                            ← Previous Step
+                        </button>
+                        <button onclick="finalizeApplication('complete')" class="btn-submit"
+                            style="flex:1; margin:0; background: #1b5e20; padding:12px; font-size:13px;">
+                            DOWNLOAD APPLICATION FORM
+                        </button>
+                        <button onclick="finalizeApplication('next_farm')" class="btn-submit"
+                            style="flex:1; margin:0; background:#fdd835; color:#333; padding:12px; font-size:13px;">
+                            DOWNLOAD & ADD ANOTHER POLICY
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUMMARY VIEW -->
+        <div id="view-summary" class="content-area" style="display:none">
+            <div class="card">
+                <div class="section-title">Batch Report Generator</div>
+                <div style="display:flex; gap:15px; align-items:flex-end;">
+                    <div class="input-group"><label>Crop</label>
+                        <select id="sum_crop" onchange="updateBatchStats()">
+                            <option value="ALL">ALL</option>
+                            <option>RICE</option>
+                            <option>CORN</option>
+                            <option>HVC</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>From</label><input type="date" id="sum_date_start"
+                            onchange="updateBatchStats()"></div>
+                    <div class="input-group"><label>To</label><input type="date" id="sum_date_end"
+                            onchange="updateBatchStats()"></div>
+                    <div class="input-group"><label>CIC No.</label><input type="text" id="sum_cic" placeholder="CIC#"
+                            onchange="updateBatchStats()">
+                    </div>
+                </div>
+
+                <div id="sum_stats" class="stats-box">Farmers: 0 | Total Area: 0.00 ha</div>
+                <!-- Warning Box Removed -->
+
+                <div style="margin-top:15px;">
+                    <button onclick="previewSummary()"
+                        style="background:#f57c00; color:white; border:none; padding:10px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">Preview
+                        Results</button>
+                    <button onclick="generateSummary('csv')"
+                        style="background:#444; color:white; border:none; padding:10px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">Export
+                        CSV</button>
+                    <button onclick="generateSummary('pdf')"
+                        style="background:var(--primary); color:white; border:none; padding:10px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">Export
+                        PDF</button>
+                </div>
+
+                <div id="preview-section" style="margin-top:20px; display:none;">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:5px; border-bottom:2px solid #eee;">
+                        <span id="preview-count"
+                            style="font-weight:bold; color:var(--primary); font-size:14px;">Filtered
+                            Records (0)</span>
+                        <button onclick="deleteSelectedPreviewItems()"
+                            style="background:#d32f2f; color:white; border:none; padding:6px 12px; border-radius:4px; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                            <i class="fas fa-trash-alt"></i> Delete Selected
+                        </button>
+                    </div>
+                    <div style="max-height:300px; overflow-y:auto; border:1px solid #eee; border-radius:4px;">
+                        <table id="preview-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                            <thead style="position:sticky; top:0; background:#f5f5f5; z-index:1;">
+                                <tr>
+                                    <th
+                                        style="padding:8px; text-align:center; border-bottom:2px solid #ddd; width: 30px;">
+                                        <input type="checkbox" id="selectAllPreview"
+                                            onchange="toggleSelectAllPreview()">
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">#
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">Farmer
+                                        ID
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">Name
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">Farm ID
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">
+                                        Farm/Farmer
+                                        Address
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">
+                                        Insurance
+                                        Lines
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">
+                                        Commodities
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">
+                                        Area
+                                    </th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">
+                                        Premium</th>
+                                    <th style="padding:8px; text-align:left; border-bottom:2px solid #ddd;">Amount
+                                        Cover
+                                    </th>
+                                    <th style="padding:8px; text-align:right; border-bottom:2px solid #ddd;">
+                                        App Date
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="preview-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="card">
+                <div class="section-title">Recent History</div>
+                <table id="session-table">
+                    <thead>
+                        <tr>
+                            <th>Farmer ID</th>
+                            <th>Name</th>
+                            <th>Farm ID</th>
+                            <th>Crop</th>
+                            <th>Planting Date</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="view-settings" class="content-area" style="display:none">
+
+            <div class="card">
+                <div class="section-title">Manage Crop Rates (Per Hectare)</div>
+                <div class="hvc-manage-item">
+                    <input type="text" id="new_hvc_name" placeholder="Crop Name (e.g. Mango)" style="flex:2">
+                    <input type="number" id="new_hvc_rate" placeholder="Rate per Ha" style="flex:1">
+                    <button onclick="addCropRate()"
+                        style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:4px; font-weight:bold;">Add
+                        Crop</button>
+                </div>
+                <div id="hvc_rate_list" class="hvc-rate-list">
+                    <!-- List of custom HVC rates will appear here -->
+                </div>
+            </div>
+
+            <!-- Moved Calibration Tool -->
+            <div class="card" style="border-left: 5px solid #607d8b; background: #eceff1; margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="color:#455a64;">PDF Calibration</strong>
+                        <p style="margin:0; font-size:11px; color:#78909c;">Adjust print alignment for forms.
+                        </p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="toggleCalibration()"> <i class="fas fa-bullseye"></i>
+                        Calibrate PDF </button>
+                </div>
+            </div>
+            <div class="card" style="margin-top:20px;">
+                <div class="section-title">Form Template Manager</div>
+                <p style="font-size:12px; color:#666; margin-bottom:10px;">Upload official application forms (PDF)
+                    for
+                    each insurance line to use as backgrounds.</p>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Crop Insurance Template</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="file" id="tpl_crop" accept="application/pdf"
+                                onchange="handleTemplateUpload('Crop')">
+                            <span id="tpl_status_Crop" style="font-size:11px; align-self:center; color:#888;">Not
+                                Loaded</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>ADSS Insurance Template</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="file" id="tpl_adss" accept="application/pdf"
+                                onchange="handleTemplateUpload('ADSS')">
+                            <span id="tpl_status_ADSS" style="font-size:11px; align-self:center; color:#888;">Not
+                                Loaded</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Livestock Insurance Template</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="file" id="tpl_livestock" accept="application/pdf"
+                                onchange="handleTemplateUpload('Livestock')">
+                            <span id="tpl_status_Livestock" style="font-size:11px; align-self:center; color:#888;">Not
+                                Loaded</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Banca Insurance Template</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="file" id="tpl_banca" accept="application/pdf"
+                                onchange="handleTemplateUpload('Banca')">
+                            <span id="tpl_status_Banca" style="font-size:11px; align-self:center; color:#888;">Not
+                                Loaded</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:15px; display:flex; gap:15px;">
+                    <div class="input-group" style="flex:1;">
+                        <label>Agent Name</label>
+                        <input type="text" id="agent_name" placeholder="Enter Agent Name" value="Agent">
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:20px;">
+                    <div class="section-title">Database Management</div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>1. Farmer Profiles (CSV)</label>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <input type="file" onchange="importData('profiles', this)">
+                                <button onclick="clearProfiles()"
+                                    style="padding:4px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;"
+                                    title="Clear all profiles">🗑️</button>
+                            </div>
+                            <div class="import-status"></div>
+                        </div>
+                        <div class="input-group">
+                            <label>2. Insurance History (CSV)</label>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <input type="file" onchange="importData('records', this)">
+                                <button onclick="clearHistory()"
+                                    style="padding:4px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;"
+                                    title="Clear all history">🗑️</button>
+                            </div>
+                            <div class="import-status"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- View: About -->
+        <div id="view-about" class="content-area" style="display:none; padding:30px; max-width:800px; margin:0 auto;">
+            <div class="card"
+                style="padding:25px; margin-bottom:30px; text-align:center; border-left: 5px solid var(--primary);">
+                <h2 style="color:var(--primary); margin-top:0;">PCIC RO10 Digital Insurance Application</h2>
+                <p style="color:#666;">High-Performance Digital Enrollment Tool</p>
+            </div>
+
+            <div class="card">
+                <h3 style="border-bottom:1px solid #eee; padding-bottom:10px; margin-top:0;">User Guide</h3>
+                <div
+                    style="height:400px; overflow-y:auto; padding:15px; background:#fafafa; border:1px solid #eee; border-radius:4px; font-size:13px; line-height:1.6;">
+                    <h4 style="margin-top:0;">1. Introduction</h4>
+                    <p>This application is a self-contained, offline-capable digital tool designed for PCIC
+                        Insurance
+                        Agents to enroll farmers, manage insurance applications, and generate standard PDF
+                        application
+                        forms. It runs entirely in your web browser and requires no internet connection once the
+                        data is
+                        loaded.</p>
+
+                    <h4>2. Getting Started</h4>
+                    <ul>
+                        <li><strong>Device:</strong> Laptop, Desktop PC, or Tablet.</li>
+                        <li><strong>Browser:</strong> Google Chrome (Recommended), Microsoft Edge, or Mozilla
+                            Firefox.
+                        </li>
+                        <li><strong>Files:</strong> You will receive a single file named
+                            <code>html_powerInsuranceApplication.html</code> along with the necessary CSV
+                            databases.
+                        </li>
+                    </ul>
+
+                    <h4>3. Data Setup (One-Time Setup)</h4>
+                    <p>Before you can start enrolling farmers, you must populate the local database.</p>
+                    <ol>
+                        <li>Navigate to the <strong>"⚙️ Database"</strong> tab in the left-hand sidebar.</li>
+                        <li>Under "System Management", locate the <strong>"Import Database (CSV)"</strong>
+                            section.
+                        </li>
+                        <li>
+                            <strong>Import Farmer Profiles:</strong>
+                            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                                <input type="file" accept=".csv" onchange="importData('profiles', this)">
+                                <button onclick="clearProfiles()"
+                                    style="padding:2px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;">🗑️
+                                    Clear Data</button>
+                            </div>
+                            <div class="import-status"></div>
+                        </li>
+                        <li>
+                            <strong>Import Insurance Records:</strong>
+                            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                                <input type="file" accept=".csv" onchange="importData('records', this)">
+                                <button onclick="clearHistory()"
+                                    style="padding:2px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;">🗑️
+                                    Clear Data</button>
+                            </div>
+                            <div class="import-status"></div>
+                        </li>
+                        <li>Verify that the status indicator at the bottom-left shows the number of records.
+                        </li>
+                    </ol>
+
+                    <h4>4. Configuring Insurance Rates</h4>
+                    <ul>
+                        <li><strong>Standard Crops (Rice/Corn):</strong> Default Amount Cover is
+                            <strong>25,000</strong>
+                            (Rice) and <strong>25,000</strong> (Corn). Change this in the "Database" tab if
+                            needed.
+                        </li>
+                        <li><strong>High Value Crops (HVC):</strong> The system comes pre-loaded with over 40
+                            common
+                            HVCs. You can add more in the "Database" tab.</li>
+                    </ul>
+
+                    <h4>5. Enrolling a Farmer</h4>
+                    <ol>
+                        <li>Click the <strong>"📝 Enrollment"</strong> tab.</li>
+                        <li>Search for the farmer by Name or ID.</li>
+                        <li>Select the farmer. A history popup will appear; choose "Renew" or "New Enrollment".
+                        </li>
+                        <li>Fill out the form details (Crop, Area, Dates, Location, Beneficiaries).</li>
+                        <li>Sign using the digital signature pad.</li>
+                        <li>Click <strong>"FINALIZE & DOWNLOAD FORM (PDF)"</strong>.</li>
+                    </ol>
+
+                    <h4>6. Generating Reports</h4>
+                    <p>Go to the <strong>"📊 Summary"</strong> tab to view your monthly performance tracker and
+                        export
+                        CSV logs or Summary PDF reports.</p>
+
+                    <p style="margin-top:20px; font-style:italic; color:#666;">For further assistance, review
+                        the
+                        full
+                        PDF manual provided separately.</p>
+                </div>
+            </div>
+
+            <!-- Credits Footer (New Subtle Card) -->
+            <div class="card"
+                style="background:transparent; box-shadow:none; border:1px solid #eee; text-align:center; padding:15px; margin-top:20px;">
+                <p
+                    style="font-size:10px; font-weight:bold; letter-spacing:1px; color:#999; text-transform:uppercase; margin:0 0 10px 0;">
+                    Created By</p>
+
+                <div
+                    style="display:flex; justify-content:center; flex-wrap:wrap; gap:20px; font-size:12px; color:#444; margin-bottom:15px;">
+                    <div style="min-width:150px;">
+                        <strong>Engr. Dave U. Gepalago</strong><br>
+                        <span style="color:#777; font-size:11px;">Application UI & Architecture</span>
+                    </div>
+                    <div style="min-width:150px;">
+                        <strong>Carlos Rock Z. Diamante</strong><br>
+                        <span style="color:#777; font-size:11px;">Application Data & Configuration</span>
+                    </div>
+                </div>
+
+                <div style="border-top:1px dashed #eee; padding-top:10px; font-size:11px; color:#888;">
+                    Assisted by </strong><em>Google Antigravity</em><br> Leveraging AI-driven scripting for
+                    automated
+                    insurance application.<br><br>
+                    <span style="font-size:10px;">Released: February 2026</span><br>
+                    <span style="font-size:10px;">Version <span id="lbl_version_footer"></span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATABASE VIEW -->
+        <div id="view-database" class="content-area" style="display:none">
+            <div class="card">
+                <div class="section-title">📁 Application Database</div>
+                <p>View and manage all insurance applications stored in the local database.</p>
+
+                <div id="db-stats" style="padding: 10px; background: #f5f5f5; border-radius: 4px; margin-bottom: 15px;">
+                    Loading statistics...
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <button class="btn btn-primary" onclick="refreshDatabaseView()">
+                        🔄 Refresh Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportToCSV()">
+                        📥 Export to CSV
+                    </button>
+                </div>
+
+                <div id="db-table-container">
+                    <!-- Database table will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- FOOTER -->
+        <footer
+            style="text-align: center; padding: 10px; font-size: 10px; color: #999; margin-top: auto; border-top: 1px solid #eee; background: #fff; width: 100%;">
+            For PCIC and its partner Underwriters use Only.
+        </footer>
+    </div> <!-- End #workspace -->
+
+    <div id="user-guide-modal" class="ug-modal-overlay" onclick="handleUGOverlayClick(event)">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <i class="fas fa-book-open" style="font-size:1.4rem; color:var(--accent);"></i>
+                    <span>PCIC RO10 Digital Insurance Application - User Guide</span>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <a href="asset/PCIC RO10 User Guide.pdf" download
+                        style="color:rgba(255,255,255,0.8); font-size:13px; text-decoration:none; display:flex; align-items:center; gap:6px; padding:6px 14px; border:1px solid rgba(255,255,255,0.3); border-radius:20px;"
+                        title="Download PDF">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                    <button class="ug-close-btn" onclick="closeUserGuideModal()" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="ug-modal-body">
+                <iframe id="user-guide-iframe" src="" class="ug-pdf-frame" title="PCIC RO10 User Guide">
+                    <p style="color:#555; text-align:center; padding:40px;">
+                        Your browser does not support inline PDFs.
+                        <a href="asset/PCIC RO10 User Guide.pdf" target="_blank" style="color:var(--primary);">
+                            Click here to download the PDF.
+                        </a>
+                    </p>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSURANCE HISTORY MODAL -->
+    <div id="modal-overlay">
+        <div class="modal">
+            <div id="modal-title"
+                style="padding:15px; background:var(--secondary); border-bottom:1px solid #ddd; font-weight:bold; color:var(--primary)">
+                History Record</div>
+            <div class="modal-body" id="modal-content-list"></div>
+            <div style="padding:15px; text-align:right;">
+                <button onclick="closeModal()"
+                    style="padding:8px 15px; border-radius:4px; border:1px solid #ccc; background:none; cursor:pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="pdf_templates.js"></script>
+    <script src="script.js"></script>
+    <!-- PDF Calibration Overlay -->
+    <div id="calibrationOverlay">
+        <div class="cal-controls">
+            <div class="cal-btn-group">
+                <button onclick="toggleCalibration()">Close</button>
+                <div
+                    style="display: flex; align-items: center; gap: 5px; margin: 0 10px; border-left: 1px solid #ccc; padding-left: 10px;">
+                    <span style="font-size: 12px; font-weight: bold; color: #555;">Form:</span>
+                    <select id="calibLineSelect" onchange="onCalibLineChange()"
+                        style="padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
+                        <option value="Crop">Crop</option>
+                        <option value="ADSS">ADSS</option>
+                        <option value="Livestock">Livestock</option>
+                        <option value="Banca">Banca</option>
+                    </select>
+                </div>
+                <div
+                    style="display: flex; align-items: center; gap: 5px; margin: 0 20px 0 10px; border-left: 1px solid #ccc; padding-left: 10px;">
+                    <span style="font-size: 12px; font-weight: bold; color: #555;">Section:</span>
+                    <select id="calibSectionSelect" onchange="renderCalibration()"
+                        style="padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
+                        <option value="all">All Fields</option>
+                        <option value="profile">Farmers Profile</option>
+                        <option value="form">Form Specifics</option>
+                    </select>
+                </div>
+                <button class="align-btn" onclick="alignSelectedX()">Align X</button>
+                <button class="align-btn" onclick="alignSelectedY()">Align Y</button>
+                <button onclick="clearSelection()">Clear Selection</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <label style="display: flex; align-items: center; gap: 5px; text-transform: none; font-size: 12px;">
+                    <input type="checkbox" onchange="toggleLabels(this)"> Show Labels
+                </label>
+                <button onclick="exportLayout()"
+                    style="background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb;">Download
+                    Layout</button>
+                <button onclick="triggerImportLayout()"
+                    style="background: #f1f8e9; color: #388e3c; border: 1px solid #dcedc8;">Upload
+                    Layout</button>
+                <input type="file" id="importLayoutInput" style="display: none;" accept=".json"
+                    onchange="importLayout(event)">
+                <button onclick="triggerImportTemplate()"
+                    style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;">Upload
+                    Template</button>
+                <input type="file" id="importTemplateInput" style="display: none;" accept="image/*"
+                    onchange="importTemplate(event)">
+                <button onclick="resetCalibration()" style="color: #c62828;">Reset</button>
+                <button class="btn btn-primary" onclick="saveCalibration()">Save Layout</button>
+            </div>
+        </div>
+        <div id="calWrapper">
+            <img id="calBgImage" class="cal-bg-img" src="" alt="PDF Template">
+            <!-- Dots will be rendered here -->
+        </div>
+    </div>
+
+    <!-- DATABASE VIEW -->
+    <div id="view-database-unused" class="content-area" style="display:none;">
+        <div class="card">
+            <div class="section-title">Database Manager</div>
+
+            <!-- Toolbar -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="exportDatabaseToCSV()">
+                        <i class="fas fa-download"></i> Export to CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="triggerImportCSV()">
+                        <i class="fas fa-upload"></i> Import from CSV
+                    </button>
+                    <input type="file" id="csvImportInput" style="display: none;" accept=".csv"
+                        onchange="handleCSVImport(event)">
+                    <button class="btn btn-secondary" onclick="refreshDatabaseView()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="db-stats" style="font-size: 12px; color: #666;">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div class="input-group" style="flex: 1; min-width: 200px;">
+                    <label>Search</label>
+                    <input type="text" id="db-search" placeholder="Search applications..."
+                        onkeyup="filterDatabaseView()">
+                </div>
+                <div class="input-group" style="flex: 0 0 150px;">
+                    <label>Insurance Type</label>
+                    <select id="db-filter-type" onchange="filterDatabaseView()">
+                        <option value="">All Types</option>
+                        <option value="Crop">Crop</option>
+                        <option value="ADSS">ADSS</option>
+                        <option value="Livestock">Livestock</option>
+                        <option value="Banca">Banca</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 0 0 150px;">
+                    <label>Status</label>
+                    <select id="db-filter-status" onchange="filterDatabaseView()">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div style="overflow-x: auto;">
+                <table id="db-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead style="background: #1b5e20; color: white;">
+                        <tr>
+                            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">ID</th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Farmer Name
+                            </th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Insurance Type
+                            </th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Date</th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Status</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="db-table-body">
+                        <tr>
+                            <td colspan="6" style="padding: 20px; text-align: center; color: #999;">
+                                Loading data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="db-pagination"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                <div style="font-size: 13px; color: #666;">
+                    Showing <span id="db-showing-start">0</span> to <span id="db-showing-end">0</span> of <span
+                        id="db-total">0</span> records
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn btn-secondary" onclick="changeDatabasePage(-1)"
+                        id="db-prev-btn">Previous</button>
+                    <button class="btn btn-secondary" onclick="changeDatabasePage(1)" id="db-next-btn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="camera-modal">
+        <h3 style="color: white; margin-bottom: 0;">Farmer Photo Capture</h3>
+        <div class="camera-container">
+            <video id="camera-video" autoplay playsinline></video>
+        </div>
+        <div class="camera-controls">
+            <button class="btn-camera close" onclick="closeCamera()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button class="btn-camera capture" onclick="capturePhoto()">
+                <i class="fas fa-camera"></i> Capture Photo
+            </button>
+        </div>
+    </div>
+    <!-- User Guide Modal -->
+    <div id="user-guide-modal" class="ug-modal-overlay" onclick="handleUGOverlayClick(event)">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div><i class="fas fa-book-open" style="margin-right: 8px;"></i> User Guide</div>
+                <button class="ug-close-btn" onclick="closeUserGuideModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body">
+                <iframe id="user-guide-iframe" class="ug-pdf-frame"></iframe>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ADDRESS DATALISTS -->
+    <datalist id="province-list"></datalist>
+    <datalist id="municipality-list"></datalist>
+
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registered!', reg))
+                    .catch(err => console.error('Service Worker registration failed: ', err));
+            });
+        }
+    </script>
+
+
+</body>
+
+</html>
