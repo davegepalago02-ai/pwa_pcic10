@@ -1,0 +1,5 @@
+# Ignore large PDF brochures
+asset/*brochure.pdf
+asset/*-brochure.pdf
+asset/Brochure*
+asset/*Brochure*
