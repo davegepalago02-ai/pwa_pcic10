@@ -55,6 +55,27 @@
             <button class="nav-btn" id="nav-summary" onclick="showView('summary')">📊 Summary</button>
             <button class="nav-btn" id="nav-settings" onclick="showView('settings')">⚙️ Settings</button>
             <button class="nav-btn" id="nav-about" onclick="showView('about')">ℹ️ Help / About</button>
+            <div
+                style="margin: 15px 0 5px 15px; font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase;">
+                Insurance Brochures</div>
+            <button class="nav-btn"
+                onclick="document.getElementById('rice-brochure-modal').style.display='flex'"><span>🌾</span>
+                Rice</button>
+            <button class="nav-btn"
+                onclick="document.getElementById('hvc-brochure-modal').style.display='flex'"><span>🥒</span> High Value
+                Crop</button>
+            <button class="nav-btn"
+                onclick="document.getElementById('fisheries-brochure-modal').style.display='flex'"><span>🐟</span>
+                Fisheries</button>
+            <button class="nav-btn"
+                onclick="document.getElementById('livestock-brochure-modal').style.display='flex'"><span>🐄</span>
+                Livestock</button>
+            <button class="nav-btn"
+                onclick="document.getElementById('noncrop-brochure-modal').style.display='flex'"><span>🚜</span>
+                Non-Crop</button>
+            <button class="nav-btn"
+                onclick="document.getElementById('adss-brochure-modal').style.display='flex'"><span>👨‍👩‍👧</span>
+                ADSS</button>
         </div>
         <div style="padding: 15px; border-top: 1px solid #eee; display: none;">
             <!-- Indicator moved to header -->
@@ -1408,6 +1429,103 @@
                     <button onclick="closeReleaseNotesModal()" class="btn-submit"
                         style="background: #1976d2; width: auto; padding: 10px 30px;">Awesome, let's work!</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BROCHURE MODALS -->
+    <!-- RICE Brochure -->
+    <div id="rice-brochure-modal" class="ug-modal-overlay">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div><i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Rice Insurance Brochure</div>
+                <button class="ug-close-btn"
+                    onclick="document.getElementById('rice-brochure-modal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body">
+                <iframe src="https://drive.google.com/file/d/1Kv4Y8Pp2-_8Kxa0EefMZEnfNpyPf648J/preview" width="100%"
+                    height="100%" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- HVC Brochure -->
+    <div id="hvc-brochure-modal" class="ug-modal-overlay">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div><i class="fas fa-file-pdf" style="margin-right: 8px;"></i> High Value Crop Brochure</div>
+                <button class="ug-close-btn"
+                    onclick="document.getElementById('hvc-brochure-modal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body">
+                <iframe src="https://drive.google.com/file/d/1efEEt43YhwhprmordiFS3zGs55yDeWud/preview" width="100%"
+                    height="100%" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- FISHERIES Brochure -->
+    <div id="fisheries-brochure-modal" class="ug-modal-overlay">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div><i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Fisheries Insurance Brochure</div>
+                <button class="ug-close-btn"
+                    onclick="document.getElementById('fisheries-brochure-modal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body">
+                <iframe src="https://drive.google.com/file/d/1r_SwzDv3ON5BUwvY08jBZRQqzJFA356P/preview" width="100%"
+                    height="100%" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIVESTOCK Brochure -->
+    <div id="livestock-brochure-modal" class="ug-modal-overlay">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div><i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Livestock Insurance Brochure</div>
+                <button class="ug-close-btn"
+                    onclick="document.getElementById('livestock-brochure-modal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body">
+                <iframe src="https://drive.google.com/file/d/1Kv4Y8Pp2-_8Kxa0EefMZEnfNpyPf648J/preview" width="100%"
+                    height="100%" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- NON-CROP Brochure -->
+    <div id="noncrop-brochure-modal" class="ug-modal-overlay">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div><i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Non-Crop Insurance Brochure</div>
+                <button class="ug-close-btn"
+                    onclick="document.getElementById('noncrop-brochure-modal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body">
+                <iframe src="https://drive.google.com/file/d/1efEEt43YhwhprmordiFS3zGs55yDeWud/preview" width="100%"
+                    height="100%" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADSS Brochure -->
+    <div id="adss-brochure-modal" class="ug-modal-overlay">
+        <div class="ug-modal-panel">
+            <div class="ug-modal-header">
+                <div><i class="fas fa-file-pdf" style="margin-right: 8px;"></i> ADSS Insurance Brochure</div>
+                <button class="ug-close-btn"
+                    onclick="document.getElementById('adss-brochure-modal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body">
+                <iframe src="https://drive.google.com/file/d/1es3-lbU9g_5SYIzSAd6PZfRSETvSFv-c/preview" width="100%"
+                    height="100%" style="border: none;"></iframe>
             </div>
         </div>
     </div>
