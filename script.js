@@ -437,7 +437,7 @@ function showView(v) {
     console.log('=== showView completed for:', v);
 
     // DIAGNOSTIC LOGGING
-    ['view-enrollment', 'view-enrollment-form', 'view-about', 'view-summary', 'view-database', 'view-settings'].forEach(id => {
+    ['view-enrollment', 'view-enrollment-form', 'view-about', 'view-summary', 'view-settings'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             const style = window.getComputedStyle(el);
@@ -1081,8 +1081,7 @@ function goToStep(stepId) {
         'signature',
         'adss-details',
         'livestock-details',
-        'banca-details',
-        'view-database'
+        'banca-details'
     ];
 
     sections.forEach(id => {
@@ -3932,34 +3931,7 @@ if (document.readyState === 'loading') {
 // DATABASE VIEW FUNCTIONS
 // ========================================
 
-let currentDatabasePage = 1;
-const recordsPerPage = 20;
-let allApplications = [];
-let filteredApplications = [];
-
-// Initialize database view when it becomes visible
-async function initializeDatabaseView() {
-    await refreshDatabaseView();
-}
-
-// Refresh database view
-async function refreshDatabaseView() {
-    try {
-        // Get all applications from database
-        allApplications = await getApplications();
-        filteredApplications = [...allApplications];
-
-        // Update statistics
-        await updateDatabaseStats();
-
-        // Reset to first page and render
-        currentDatabasePage = 1;
-        renderDatabaseTable();
-    } catch (error) {
-        console.error('Error refreshing database view:', error);
-        showDatabaseError('Failed to load data from database');
-    }
-}
+// Database View is removed.
 
 // Helper to get all applications (missing in some versions)
 async function getApplications() {
@@ -4011,128 +3983,7 @@ async function updateWelcomeStats() {
     }
 }
 
-// Get application statistics
-async function getApplicationStats() {
-    const stats = {
-        total: allApplications.length,
-        byType: {},
-        byStatus: {}
-    };
-
-    // Count by insurance type
-    allApplications.forEach(app => {
-        const type = app.insuranceType || 'Unknown';
-        stats.byType[type] = (stats.byType[type] || 0) + 1;
-
-        const status = app.status || 'Unknown';
-        stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
-    });
-
-    return stats;
-}
-
-// Update database statistics
-async function updateDatabaseStats() {
-    try {
-        const stats = await getApplicationStats();
-        const statsEl = document.getElementById('db-stats');
-        statsEl.textContent = `Total: ${stats.total} | Crop: ${stats.byType.Crop || 0} | ADSS: ${stats.byType.ADSS || 0} | Livestock: ${stats.byType.Livestock || 0} | Banca: ${stats.byType.Banca || 0}`;
-    } catch (error) {
-        console.error('Error updating stats:', error);
-    }
-}
-
-// Filter database view based on search and filters
-function filterDatabaseView() {
-    const searchTerm = document.getElementById('db-search').value.toLowerCase();
-    const typeFilter = document.getElementById('db-filter-type').value;
-    const statusFilter = document.getElementById('db-filter-status').value;
-
-    filteredApplications = allApplications.filter(app => {
-        // Search filter
-        const matchesSearch = !searchTerm ||
-            app.farmerName?.toLowerCase().includes(searchTerm) ||
-            app.id?.toLowerCase().includes(searchTerm) ||
-            app.farmerId?.toLowerCase().includes(searchTerm);
-
-        // Type filter
-        const matchesType = !typeFilter || app.insuranceType === typeFilter;
-
-        // Status filter
-        const matchesStatus = !statusFilter || app.status === statusFilter;
-
-        return matchesSearch && matchesType && matchesStatus;
-    });
-
-    // Reset to first page and render
-    currentDatabasePage = 1;
-    renderDatabaseTable();
-}
-
-// Render database table
-function renderDatabaseTable() {
-    const tbody = document.getElementById('db-table-body');
-    const startIndex = (currentDatabasePage - 1) * recordsPerPage;
-    const endIndex = startIndex + recordsPerPage;
-    const pageData = filteredApplications.slice(startIndex, endIndex);
-
-    if (pageData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #999;">No applications found</td></tr>';
-    } else {
-        tbody.innerHTML = pageData.map(app => '<tr style="border-bottom: 1px solid #ddd;"><td style="padding: 10px; border: 1px solid #ddd;">' + (app.id || 'N/A') + '</td><td style="padding: 10px; border: 1px solid #ddd;">' + (app.farmerName || 'N/A') + '</td><td style="padding: 10px; border: 1px solid #ddd;"><span style="padding: 4px 8px; background: ' + getTypeColor(app.insuranceType) + '; color: white; border-radius: 4px; font-size: 11px;">' + (app.insuranceType || 'N/A') + '</span></td><td style="padding: 10px; border: 1px solid #ddd;">' + (formatDate(app.applicationDate) || 'N/A') + '</td><td style="padding: 10px; border: 1px solid #ddd;"><span style="padding: 4px 8px; background: ' + getStatusColor(app.status) + '; color: white; border-radius: 4px; font-size: 11px;">' + (app.status || 'pending') + '</span></td><td style="padding: 8px; border: 1px solid #ddd;"><div style="display:flex; gap:5px; justify-content:center;"><button class="btn btn-secondary" style="flex:1; padding: 5px; font-size: 11px;" onclick="viewApplication(\'' + app.id + '\')"><i class="fas fa-eye"></i> View</button> <button class="btn btn-secondary" style="flex:1; padding: 5px; font-size: 11px; background: #c62828;" onclick="deleteApplication(\'' + app.id + '\')"><i class="fas fa-trash"></i> Delete</button></div></td></tr>').join('');
-    }
-
-    // Update pagination
-    updateDatabasePagination();
-}
-
-// Update pagination controls
-function updateDatabasePagination() {
-    const totalRecords = filteredApplications.length;
-    const totalPages = Math.ceil(totalRecords / recordsPerPage);
-    const startIndex = (currentDatabasePage - 1) * recordsPerPage + 1;
-    const endIndex = Math.min(startIndex + recordsPerPage - 1, totalRecords);
-
-    document.getElementById('db-showing-start').textContent = totalRecords > 0 ? startIndex : 0;
-    document.getElementById('db-showing-end').textContent = totalRecords > 0 ? endIndex : 0;
-    document.getElementById('db-total').textContent = totalRecords;
-
-    // Enable/disable pagination buttons
-    document.getElementById('db-prev-btn').disabled = currentDatabasePage === 1;
-    document.getElementById('db-next-btn').disabled = currentDatabasePage >= totalPages;
-}
-
-// Change database page
-function changeDatabasePage(direction) {
-    const totalPages = Math.ceil(filteredApplications.length / recordsPerPage);
-    const newPage = currentDatabasePage + direction;
-
-    if (newPage >= 1 && newPage <= totalPages) {
-        currentDatabasePage = newPage;
-        renderDatabaseTable();
-    }
-}
-
-// Helper function to get color for insurance type
-function getTypeColor(type) {
-    const colors = {
-        'Crop': '#2e7d32',
-        'ADSS': '#1565c0',
-        'Livestock': '#f57c00',
-        'Banca': '#6a1b9a'
-    };
-    return colors[type] || '#666';
-}
-
-// Helper function to get color for status
-function getStatusColor(status) {
-    const colors = {
-        'pending': '#f57c00',
-        'approved': '#2e7d32',
-        'rejected': '#c62828'
-    };
-    return colors[status] || '#666';
-}
+// (Database helpers removed)
 
 // Helper function to format date
 function formatDate(dateString) {
@@ -4141,90 +3992,7 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// Export database to CSV
-async function exportDatabaseToCSV() {
-    try {
-        const typeFilter = document.getElementById('db-filter-type').value;
-        await exportToCSV(typeFilter || 'all');
-        alert('CSV export successful!');
-    } catch (error) {
-        console.error('Error exporting CSV:', error);
-        alert('Failed to export CSV: ' + error.message);
-    }
-}
-
-// Trigger CSV import
-function triggerImportCSV() {
-    document.getElementById('csvImportInput').click();
-}
-
-// Handle CSV import
-// Handle CSV import
-async function handleCSVImport(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // SHOW IMPORTING STATUS
-    const statsEl = document.getElementById('db-stats');
-    const originalText = statsEl.innerText;
-    statsEl.innerText = "Importing database... Please wait...";
-
-    try {
-        // Determine insurance type from filename or ask user
-        const filename = file.name.toLowerCase();
-        let insuranceType = 'mixed';
-
-        if (filename.includes('crop')) insuranceType = 'Crop';
-        else if (filename.includes('adss')) insuranceType = 'ADSS';
-        else if (filename.includes('livestock')) insuranceType = 'Livestock';
-        else if (filename.includes('banca')) insuranceType = 'Banca';
-
-        const result = await importFromCSV(file, insuranceType);
-
-        if (result.success) {
-            alert('Successfully imported ' + result.count + ' records!');
-            await refreshDatabaseView();
-        } else {
-            alert('Import completed with errors. Please check the console for details.');
-            statsEl.innerText = originalText;
-        }
-    } catch (error) {
-        console.error('Error importing CSV:', error);
-        alert('Failed to import CSV: ' + error.message);
-        statsEl.innerText = originalText;
-    }
-
-    // Reset file input
-    event.target.value = '';
-}
-
-// View application details
-function viewApplication(appId) {
-    // TODO: Implement view application details
-    alert('View application: ' + appId);
-}
-
-// Delete application
-async function deleteApplication(appId) {
-    if (!confirm('Are you sure you want to delete this application?')) {
-        return;
-    }
-
-    try {
-        await deleteApplicationById(appId);
-        alert('Application deleted successfully');
-        await refreshDatabaseView();
-    } catch (error) {
-        console.error('Error deleting application:', error);
-        alert('Failed to delete application: ' + error.message);
-    }
-}
-
-// Show database error
-function showDatabaseError(message) {
-    const tbody = document.getElementById('db-table-body');
-    tbody.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #c62828;"><i class="fas fa-exclamation-triangle"></i> ' + message + '</td></tr>';
-}
+// CSV importing logic has been moved to settings view.
 
 // --- Farmer Photo Capture Logic ---
 let cameraStream = null;
