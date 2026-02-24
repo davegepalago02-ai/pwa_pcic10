@@ -31,6 +31,17 @@ Ensure that the recent fix for the CSV/Summary generation didn't break the synta
 *   The system generates filenames like: `[LastName]_[FirstName]_[Crop]_[FarmID]_[Date].pdf`.
 *   If a name contains forbidden text characters (like `/`, `\`, `:`, `*`), the browser might block the download.
 
+### E. Stuck Service Worker (App Won't Update Locally)
+*   **Sign:** A new version was pushed (e.g., v1.2.3), other users see it, but your specific PC is still loading the old version and the update banner doesn't appear.
+*   **Diagnosis:** Chrome/Edge has aggressively cached the old Service Worker and is refusing to release it to save local bandwidth during heavy development.
+*   **Fix:** Force unregister the stuck Service Worker via Developer Tools.
+    1. Press **F12** to open Developer Tools.
+    2. Go to the **Application** tab.
+    3. Click on **Service Workers** in the left sidebar.
+    4. Click the blue **"Unregister"** button next to the active worker.
+    5. *(Optional but recommended)* Click **Storage** in the left sidebar and click **"Clear site data"** (ensure "Service workers" and "Cache storage" are checked. Do not check "IndexedDB" if you have unsaved offline data).
+    6. Close Developer Tools and press **Ctrl + F5** to hard refresh the page. The new version should now be fetched.
+
 ---
 
 ## 2. Task: Update the Versions
