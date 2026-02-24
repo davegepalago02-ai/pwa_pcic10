@@ -55,27 +55,6 @@
             <button class="nav-btn" id="nav-summary" onclick="showView('summary')">📊 Summary</button>
             <button class="nav-btn" id="nav-settings" onclick="showView('settings')">⚙️ Settings</button>
             <button class="nav-btn" id="nav-about" onclick="showView('about')">ℹ️ Help / About</button>
-            <div
-                style="margin: 15px 0 5px 15px; font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase;">
-                Insurance Brochures</div>
-            <button class="nav-btn"
-                onclick="document.getElementById('rice-brochure-modal').style.display='flex'"><span>🌾</span>
-                Rice</button>
-            <button class="nav-btn"
-                onclick="document.getElementById('hvc-brochure-modal').style.display='flex'"><span>🥒</span> High Value
-                Crop</button>
-            <button class="nav-btn"
-                onclick="document.getElementById('fisheries-brochure-modal').style.display='flex'"><span>🐟</span>
-                Fisheries</button>
-            <button class="nav-btn"
-                onclick="document.getElementById('livestock-brochure-modal').style.display='flex'"><span>🐄</span>
-                Livestock</button>
-            <button class="nav-btn"
-                onclick="document.getElementById('noncrop-brochure-modal').style.display='flex'"><span>🚜</span>
-                Non-Crop</button>
-            <button class="nav-btn"
-                onclick="document.getElementById('adss-brochure-modal').style.display='flex'"><span>👨‍👩‍👧</span>
-                ADSS</button>
         </div>
         <div style="padding: 15px; border-top: 1px solid #eee; display: none;">
             <!-- Indicator moved to header -->
@@ -128,6 +107,11 @@
                 <div class="welcome-actions">
                     <button class="btn-guide" onclick="showUserGuide()">
                         <i class="fas fa-book"></i> User Guide
+                    </button>
+                    <button class="btn-guide"
+                        style="background: rgba(255, 255, 255, 0.1); border-color: var(--primary);"
+                        onclick="document.getElementById('brochure-selection-modal').style.display='flex'">
+                        <i class="fas fa-file-pdf"></i> View Brochures
                     </button>
                     <button class="btn-proceed" onclick="showView('enrollment')">
                         Proceed to Search Farmer <i class="fas fa-arrow-right"></i>
@@ -1436,6 +1420,65 @@
                 <div style="margin-top: 25px; text-align: center;">
                     <button onclick="closeReleaseNotesModal()" class="btn-submit"
                         style="background: #1976d2; width: auto; padding: 10px 30px;">Awesome, let's work!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BROCHURE SELECTION MODAL -->
+    <div id="brochure-selection-modal" class="ug-modal-overlay">
+        <div class="ug-modal-panel" style="max-width: 600px;">
+            <div class="ug-modal-header" style="background: var(--primary);">
+                <div><i class="fas fa-book-open" style="margin-right: 8px;"></i> Insurance Brochures</div>
+                <button class="ug-close-btn"
+                    onclick="document.getElementById('brochure-selection-modal').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body" style="padding: 30px; background: #f9f9f9; overflow-y: auto; max-height: 80vh;">
+                <p style="text-align: center; margin-bottom: 25px; color: #666;">Select a brochure to view the insurance
+                    coverage details.</p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <button
+                        onclick="document.getElementById('rice-brochure-modal').style.display='flex'; document.getElementById('brochure-selection-modal').style.display='none';"
+                        style="display: flex; flex-direction: column; align-items: center; background: white; border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                        <span style="font-size: 32px; margin-bottom: 10px;">🌾</span>
+                        <span style="font-weight: 600; color: #333;">Rice</span>
+                    </button>
+                    <button
+                        onclick="document.getElementById('hvc-brochure-modal').style.display='flex'; document.getElementById('brochure-selection-modal').style.display='none';"
+                        style="display: flex; flex-direction: column; align-items: center; background: white; border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                        <span style="font-size: 32px; margin-bottom: 10px;">🥒</span>
+                        <span style="font-weight: 600; color: #333; text-align: center; font-size: 13px;">High Value
+                            Crop</span>
+                    </button>
+                    <button
+                        onclick="document.getElementById('fisheries-brochure-modal').style.display='flex'; document.getElementById('brochure-selection-modal').style.display='none';"
+                        style="display: flex; flex-direction: column; align-items: center; background: white; border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                        <span style="font-size: 32px; margin-bottom: 10px;">🐟</span>
+                        <span style="font-weight: 600; color: #333;">Fisheries</span>
+                    </button>
+                    <button
+                        onclick="document.getElementById('livestock-brochure-modal').style.display='flex'; document.getElementById('brochure-selection-modal').style.display='none';"
+                        style="display: flex; flex-direction: column; align-items: center; background: white; border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                        <span style="font-size: 32px; margin-bottom: 10px;">🐄</span>
+                        <span style="font-weight: 600; color: #333;">Livestock</span>
+                    </button>
+                    <button
+                        onclick="document.getElementById('noncrop-brochure-modal').style.display='flex'; document.getElementById('brochure-selection-modal').style.display='none';"
+                        style="display: flex; flex-direction: column; align-items: center; background: white; border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                        <span style="font-size: 32px; margin-bottom: 10px;">🚜</span>
+                        <span style="font-weight: 600; color: #333;">Non-Crop</span>
+                    </button>
+                    <button
+                        onclick="document.getElementById('adss-brochure-modal').style.display='flex'; document.getElementById('brochure-selection-modal').style.display='none';"
+                        style="display: flex; flex-direction: column; align-items: center; background: white; border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                        <span style="font-size: 32px; margin-bottom: 10px;">👨‍👩‍👧</span>
+                        <span style="font-weight: 600; color: #333;">ADSS</span>
+                    </button>
+                </div>
+                <div style="margin-top: 30px; text-align: center;">
+                    <button onclick="document.getElementById('brochure-selection-modal').style.display='none'"
+                        style="background: #eee; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; color: #666; font-weight: 600;">Close</button>
                 </div>
             </div>
         </div>
