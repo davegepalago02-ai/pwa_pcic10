@@ -55,76 +55,76 @@
             Start((App Init)) --> LoadDB[Initialize Dexie.js Offline DB]
             LoadDB --> AttachListeners[Attach Event Listeners]
             AttachListeners --> DetectDevice[Get/Generate Device ID]
-            DetectDevice --> LoadDefaults[Load Default Settings & Rates]
+            DetectDevice --> LoadDefaults["Load Default Settings & Rates"]
             LoadDefaults --> Ready((System Ready))
 
             %% Routing Engine
             Ready --> Navigation[User Navigation via Sidebar]
-            Navigation --> ShowView{showView(view_id)}
+            Navigation --> ShowView{"showView(view_id)"}
 
             %% Dynamic View Logic
-            ShowView -->|enrollment| ResetEnroll[resetEnrollmentFields()]
-            ShowView -->|summary| RefreshStats[updateBatchStats()]
-            ShowView -->|settings| RefreshConfig[updateTemplateStatus() & refreshHVCRateList()]
-            ShowView -->|database| LoadDBTable[refreshDatabaseView()]
+            ShowView -->|enrollment| ResetEnroll["resetEnrollmentFields()"]
+            ShowView -->|summary| RefreshStats["updateBatchStats()"]
+            ShowView -->|settings| RefreshConfig["updateTemplateStatus() & refreshHVCRateList()"]
+            ShowView -->|database| LoadDBTable["refreshDatabaseView()"]
 
             %% Core: Enrollment Logic Path
             subgraph Enrollment_Data_Flow [Enrollment Logic & Execution]
             direction TB
 
             SearchInput[User Types in Filter]
-            SearchInput --> SearchFarmer{searchFarmer()}
+            SearchInput --> SearchFarmer{"searchFarmer()"}
 
             SearchFarmer -->|Found| RenderResults[Render Search Results List]
             SearchFarmer -->|Empty| ShowEmpty[Show No Records Found]
-            SearchFarmer -->|New Applicant| StartBlank[startBlankEnrollment()]
+            SearchFarmer -->|New Applicant| StartBlank["startBlankEnrollment()"]
 
             RenderResults --> SelectFarmer[User Selects Record]
             SelectFarmer --> ConfirmAction{Action Selected}
 
-            ConfirmAction -->|Renew| LoadProfileOnly[Load Profile Data, Clear Farm Data]
-            ConfirmAction -->|Edit Existing| LoadAll[restoreEnrollmentState() Load All Data]
+            ConfirmAction -->|Renew| LoadProfileOnly["Load Profile Data, Clear Farm Data"]
+            ConfirmAction -->|Edit Existing| LoadAll["restoreEnrollmentState() Load All Data"]
 
             StartBlank --> LoadProfileOnly
             LoadProfileOnly --> StepEngine
             LoadAll --> StepEngine
 
             %% Step Validation & Logic
-            StepEngine{{goToStep(target)}}
+            StepEngine{{"goToStep(target)"}}
             StepEngine -->|Validate| CheckRequired{Fields Valid?}
-            CheckRequired -->|No| AlertError[alert('Required fields missing')]
-            CheckRequired -->|Yes| Transition[Hide Current, Show Target]
+            CheckRequired -->|No| AlertError["alert('Required fields missing')"]
+            CheckRequired -->|Yes| Transition["Hide Current, Show Target"]
 
             %% Auto-Calculation Triggers
             Transition --> DynamicCalculations
 
             subgraph Calcs [Real-time Calculations]
-            Calc1([calculateTotalCover]) -.-> Trigger1(Update Crop Premium UI)
-            Calc2([calculateADSSCover]) -.-> Trigger2(Update ADSS Cover UI)
-            Calc3([calculateLivestockCover]) -.-> Trigger3(Update Livestock Table UI)
-            Calc4([calculateBancaCover]) -.-> Trigger4(Update Banca Cover UI)
+            Calc1(["calculateTotalCover"]) -.-> Trigger1("Update Crop Premium UI")
+            Calc2(["calculateADSSCover"]) -.-> Trigger2("Update ADSS Cover UI")
+            Calc3(["calculateLivestockCover"]) -.-> Trigger3("Update Livestock Table UI")
+            Calc4(["calculateBancaCover"]) -.-> Trigger4("Update Banca Cover UI")
             end
 
             DynamicCalculations -.-> Calcs
 
             %% Submission Engine
             Transition --> SaveTrigger[User Clicks Finalize]
-            SaveTrigger --> FinalizeApp{finalizeApplication(mode)}
+            SaveTrigger --> FinalizeApp{"finalizeApplication(mode)"}
 
             FinalizeApp --> CollectData[Gather input DOM elements]
             CollectData --> BuildPayload[Construct App Object payload]
-            BuildPayload --> DBSave[db.apps.put(payload)]
+            BuildPayload --> DBSave["db.apps.put(payload)"]
 
-            DBSave --> GeneratePDF{generateApplicationPDF()}
+            DBSave --> GeneratePDF{"generateApplicationPDF()"}
 
-            GeneratePDF --> LoadTemplate[Fetch Base64 String/Blob for Ins. Line]
+            GeneratePDF --> LoadTemplate["Fetch Base64 String/Blob for Ins. Line"]
             LoadTemplate --> MapCoords[Map App Object to jsPDF Coordinates]
-            MapCoords --> DrawData[Draw Text/Signatures via PDF-lib & jsPDF]
+            MapCoords --> DrawData["Draw Text/Signatures via PDF-lib & jsPDF"]
             DrawData --> SaveBlob[Download File to User]
 
             SaveBlob --> RouteNext{Check finish mode}
-            RouteNext -->|complete| RevertSearch[showView('enrollment')]
-            RouteNext -->|next_farm| ResetForm[resetEnrollmentFields() + Load Current Farmer]
+            RouteNext -->|complete| RevertSearch["showView('enrollment')"]
+            RouteNext -->|next_farm| ResetForm["resetEnrollmentFields() + Load Current Farmer"]
             end
 
             %% Secondary Modules
@@ -132,14 +132,14 @@
             direction TB
 
             %% Batch Summary
-            GenSum[generateSummary(type)] --> FetchFiltered[Query DB w/ Filters]
+            GenSum["generateSummary(type)"] --> FetchFiltered[Query DB w/ Filters]
             FetchFiltered -->|PDF| SumPDF[Build PDF using jspdf-autotable]
             FetchFiltered -->|CSV| SumCSV[PapaParse JSON to CSV via Blob]
 
             %% Importer
-            Import[importData(type, file)] --> ReadFile[FileReader reads text]
+            Import["importData(type, file)"] --> ReadFile[FileReader reads text]
             ReadFile --> Parse[PapaParse string to Array]
-            Parse --> BulkAdd[db[type].bulkPut(array)]
+            Parse --> BulkAdd["db[type].bulkPut(array)"]
             end
 
             ShowView -.->|Triggers| Processing_Modules
