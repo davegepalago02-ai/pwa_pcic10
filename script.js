@@ -3,7 +3,7 @@ function toggleSidebar() {
 }
 
 // === VERSION CONTROL ===
-const APP_VERSION = "1.2.3"; // Single source of truth
+const APP_VERSION = "1.2.4"; // Single source of truth
 // =======================
 
 const getDeviceID = () => {
@@ -120,7 +120,7 @@ function checkGuardianRequirement() {
     const bdayVal = document.getElementById('f_bday').value;
     if (!bdayVal) return;
     const age = calculateAge(bdayVal);
-    const isMinor = age > 0 && age < 18;
+    const isMinor = age > 15 && age < 18;
 
     const adssMinor = document.getElementById('adss_is_minor');
     if (adssMinor) {
