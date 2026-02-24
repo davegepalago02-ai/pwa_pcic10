@@ -956,26 +956,28 @@ select:focus {
 }
 
 .btn-guide {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-dark);
     padding: 20px 40px;
     font-size: 20px;
     font-weight: 600;
     border-radius: 50px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(0, 0, 0, 0.1);
     cursor: pointer;
     backdrop-filter: blur(5px);
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 12px;
+    opacity: 0;
 }
 
 .btn-guide:hover {
     background: #fff;
     color: var(--primary);
     transform: scale(1.05) translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    opacity: 1;
 }
 
 .welcome-stats-grid {
