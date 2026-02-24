@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Workflow Diagram</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: { curve: 'linear' }
+        });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #1b5e20;
+        }
+
+        .diagram-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 95vw;
+            overflow-x: auto;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Application Workflow Viewer</h1>
+    <div class="diagram-container">
+        <div class="mermaid">
+            flowchart TD
+            %% Main Navigation
+            Start([App Launch]) --> Welcome[Welcome Dashboard]
+
+            Welcome -->|Action: Proceed| Search[Search Farmer View]
+            Welcome -->|Action: User Guide| Guide[User Guide Modal]
+
+            %% Sidebar Global Navigation
+            Sidebar{{Sidebar Navigation}} -.->|Search Farmer| Search
+            Sidebar -.->|Summary| Summary[Summary View]
+            Sidebar -.->|Database| Database[Database Database View]
+            Sidebar -.->|Settings| Settings[Settings View]
+            Sidebar -.->|Help / About| About[About View]
+
+            %% Search to Enrollment
+            Search -->|Search DB / New Applicant| Wizard[Enrollment Form Wizard]
+
+            %% Wizard Flow
+            subgraph WizardFlow [Enrollment Form Steps]
+            direction TB
+            Step1["Step 1: Farmer Information<br>- Profile details<br>- Photo capture<br>- Beneficiaries"]
+
+            Step2[Step 2: Policy Details Selection]
+            Step1 -->|Next| Step2
+
+            %% Conditional Branches
+            BranchCrop[Crop Section]
+            BranchADSS[ADSS Details]
+            BranchLivestock[Livestock Details]
+            BranchBanca[Banca Details]
+
+            Step2 -->|Select Insurance Line: Crop| BranchCrop
+            Step2 -->|Select Insurance Line: ADSS| BranchADSS
+            Step2 -->|Select Insurance Line: Livestock| BranchLivestock
+            Step2 -->|Select Insurance Line: Banca| BranchBanca
+
+            Step3["Step 3: Farm Details<br>- Location<br>- Area<br>- Boundaries"]
+            BranchCrop -->|Next| Step3
+
+            Step4["Step 4: Signature & Consent<br>- Certification<br>- Data Privacy<br>- Deed of Assignment<br>-
+            E-Signature Canvas"]
+            Step3 -->|Next| Step4
+            BranchADSS -->|Next| Step4
+            BranchLivestock -->|Next| Step4
+            BranchBanca -->|Next| Step4
+            end
+
+            Wizard --> WizardFlow
+
+            %% Finalization
+            Finish1["Finalize Application<br>- Save to IndexedDB<br>- Overlay PDF Template<br>- Export PDF"]
+            Finish2["Finalize Application<br>- Save to DB<br>- Export PDF<br>- Reset Form for Same Farmer"]
+
+            Step4 -->|Download Application Form| Finish1
+            Step4 -->|Download & Add Another Policy| Finish2
+
+            Finish1 -->|Return| Search
+            Finish2 -->|Loop| Step2
+
+            %% Feature Detail Nodes
+            subgraph Other_Features [Other Application Features]
+            direction TB
+            SumActions["Batch Export: CSV<br>Batch Export: PDF<br>Preview Current Filtered Stats"]
+            Summary --> SumActions
+
+            DbActions["Import Profiles (CSV)<br>Import History (CSV)<br>Export Database (CSV)"]
+            Database --> DbActions
+
+            SetActions["Manage Crop Rates<br>Form Template Manager<br>PDF Calibration Layout Tool"]
+            Settings --> SetActions
+            end
+        </div>
+    </div>
+</body>
+
+</html>
