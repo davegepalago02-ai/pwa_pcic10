@@ -3,7 +3,7 @@ function toggleSidebar() {
 }
 
 // === VERSION CONTROL ===
-const APP_VERSION = "1.2.2"; // Single source of truth
+const APP_VERSION = "1.2.3"; // Single source of truth
 // =======================
 
 const getDeviceID = () => {
@@ -2189,7 +2189,31 @@ async function generateIndividualPDF(data) {
     const { jsPDF } = window.jspdf; // CRITICAL: Ensure constructor via window.jspdf
     const agentEl = document.getElementById('agent_name');
     const agent = agentEl ? agentEl.value : "Agent";
-    const suggestedName = `${data.LastName}_${data.FirstName}_${line}_${data.FarmID || 'APP'}_${data.Planting ? data.Planting.substring(0, 7) : 'Unknown'}.pdf`;
+    let suggestedName = "";
+    const tsYM = new Date().toISOString().substring(0, 7);
+
+    if (line === 'Crop') {
+        const commodity = data.CropType || 'UnknownCrop';
+        const farmId = data.FarmID || 'APP';
+        const plantingYM = data.Planting ? data.Planting.substring(0, 7) : tsYM;
+        // Format: LastName_FirstName_InsuranceLine_Commodity_FarmID_Planting Year-Month
+        suggestedName = `${data.LastName}_${data.FirstName}_${line}_${commodity}_${farmId}_${plantingYM}.pdf`;
+    } else if (line === 'ADSS') {
+        // Format: LastName_FirstName_InsuranceLine_Timestamp Year-Month
+        suggestedName = `${data.LastName}_${data.FirstName}_${line}_${tsYM}.pdf`;
+    } else if (line === 'Livestock') {
+        const type = data.AnimalType || 'UnknownType';
+        const animalClass = data.Variety ? data.Variety.split(' ')[0] : 'UnknownClass';
+        // Format: LastName_FirstName_InsuranceLine_Type_Class_Timestamp Year-Month
+        suggestedName = `${data.LastName}_${data.FirstName}_${line}_${type}_${animalClass}_${tsYM}.pdf`;
+    } else if (line === 'Banca') {
+        const type = data.BoatType || 'UnknownType';
+        const boatClass = data.BoatMaterial || 'UnknownClass';
+        // Format: LastName_FirstName_InsuranceLine_Type_Class_Timestamp Year-Month
+        suggestedName = `${data.LastName}_${data.FirstName}_${line}_${type}_${boatClass}_${tsYM}.pdf`;
+    } else {
+        suggestedName = `${data.LastName}_${data.FirstName}_${line}_${tsYM}.pdf`;
+    }
 
     try {
         // Load line-specific layout and template
