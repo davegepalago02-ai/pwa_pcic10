@@ -59,6 +59,18 @@
     </div>
 
     <div id="workspace">
+        <!-- UPDATE BANNER -->
+        <div id="update-banner" class="update-banner" style="display: none;" onclick="showReleaseNotes()">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <span>🚀 <strong>New Update Available!</strong> Version <span id="banner-version"></span> has been
+                    released. Click to see what's new.</span>
+                <button onclick="dismissUpdateBanner(event)"
+                    style="background: none; border: none; color: white; cursor: pointer; padding: 0 5px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
         <div class="app-header">
             <div class="header-left">
                 <button onclick="toggleSidebar()" class="menu-btn"><i class="fas fa-bars"></i></button>
@@ -1426,6 +1438,67 @@
             </div>
             <div class="ug-modal-body">
                 <iframe id="user-guide-iframe" class="ug-pdf-frame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Release Notes Modal -->
+    <div id="release-notes-modal" class="ug-modal-overlay" onclick="handleRNOverlayClick(event)">
+        <div class="ug-modal-panel" style="max-width: 600px;">
+            <div class="ug-modal-header" style="background: #1976d2;">
+                <div><i class="fas fa-bullhorn" style="margin-right: 8px;"></i> What's New</div>
+                <button class="ug-close-btn" onclick="closeReleaseNotesModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ug-modal-body" style="padding: 20px; background: #fafafa; overflow-y: auto;">
+                <h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">Version
+                    Release Notes</h3>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #1976d2; margin-bottom: 5px;">v1.2.1 (Latest)</h4>
+                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
+                        <li>Added visual logic flow diagram</li>
+                        <li>Added new visual data storage flow diagram</li>
+                        <li>Implemented update notification banner</li>
+                        <li>Added version release notes modal</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #1976d2; margin-bottom: 5px;">v1.1.2 (2026-01-30)</h4>
+                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
+                        <li>Embedded the PCIC RO10 logo to the script</li>
+                        <li>Updated versioning format</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #666; margin-bottom: 5px;">v1.0.2 (2026-01-29)</h4>
+                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
+                        <li>[FIX] Replaced 'Suffix' with 'Middle Name'</li>
+                        <li>Fixed form save bugs</li>
+                        <li>Verified PDF & Summary generation stability</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #666; margin-bottom: 5px;">v1.0.1 (2026-01-28)</h4>
+                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
+                        <li>[FEAT] Added Farm Selector dropdown for existing farmers</li>
+                        <li>Fixed blank PDF generation issues</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <h4 style="color: #666; margin-bottom: 5px;">v1.0.0 (2026-01-01)</h4>
+                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
+                        <li>Initial Release of the PCIC Application form</li>
+                    </ul>
+                </div>
+
+                <div style="margin-top: 25px; text-align: center;">
+                    <button onclick="closeReleaseNotesModal()" class="btn-submit"
+                        style="background: #1976d2; width: auto; padding: 10px 30px;">Awesome, let's work!</button>
+                </div>
             </div>
         </div>
     </div>
