@@ -1514,8 +1514,41 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js')
-                    .then(reg => console.log('Service Worker registered!', reg))
+                    .then(registration => {
+                        console.log('Service Worker registered!', registration);
+
+                        // Check for updates every time the app loads
+                        registration.update();
+
+                        // Listen for a new service worker installing in the background
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('New Service Worker installing:', newWorker);
+
+                            newWorker.addEventListener('statechange', () => {
+                                // Once the new worker is installed and waiting to take over
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('New update available in background.');
+
+                                    // Show a browser alert/confirm to the user
+                                    if (confirm("A new version of the PCIC application is available!\n\nClick OK to refresh and apply the update now.")) {
+                                        // Tell the new service worker to take over immediately
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    }
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.error('Service Worker registration failed: ', err));
+
+                // Listen for the controlling service worker changing (meaning the new one took over)
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        refreshing = true;
+                        window.location.reload();
+                    }
+                });
             });
         }
     </script>

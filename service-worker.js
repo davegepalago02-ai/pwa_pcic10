@@ -72,3 +72,10 @@ self.addEventListener('activate', event => {
         })
     );
 });
+
+// Allow the web app to trigger an immediate update and bypass the waiting lifecycle
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
