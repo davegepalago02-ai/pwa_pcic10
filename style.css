@@ -969,7 +969,6 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 12px;
-    opacity: 0;
 }
 
 .btn-guide:hover {
@@ -977,7 +976,6 @@ select:focus {
     color: var(--primary);
     transform: scale(1.05) translateY(-5px);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    opacity: 1;
 }
 
 .welcome-stats-grid {
