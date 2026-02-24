@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Logic Flow</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: { curve: 'linear' }
+        });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #1b5e20;
+        }
+
+        .diagram-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 95vw;
+            overflow-x: auto;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Application Core Logic Execution Flow</h1>
+    <div class="diagram-container">
+        <div class="mermaid">
+            flowchart TD
+            %% System Initialization
+            Start((App Init)) --> LoadDB[Initialize Dexie.js Offline DB]
+            LoadDB --> AttachListeners[Attach Event Listeners]
+            AttachListeners --> DetectDevice[Get/Generate Device ID]
+            DetectDevice --> LoadDefaults[Load Default Settings & Rates]
+            LoadDefaults --> Ready((System Ready))
+
+            %% Routing Engine
+            Ready --> Navigation[User Navigation via Sidebar]
+            Navigation --> ShowView{showView(view_id)}
+
+            %% Dynamic View Logic
+            ShowView -->|enrollment| ResetEnroll[resetEnrollmentFields()]
+            ShowView -->|summary| RefreshStats[updateBatchStats()]
+            ShowView -->|settings| RefreshConfig[updateTemplateStatus() & refreshHVCRateList()]
+            ShowView -->|database| LoadDBTable[refreshDatabaseView()]
+
+            %% Core: Enrollment Logic Path
+            subgraph Enrollment_Data_Flow [Enrollment Logic & Execution]
+            direction TB
+
+            SearchInput[User Types in Filter]
+            SearchInput --> SearchFarmer{searchFarmer()}
+
+            SearchFarmer -->|Found| RenderResults[Render Search Results List]
+            SearchFarmer -->|Empty| ShowEmpty[Show No Records Found]
+            SearchFarmer -->|New Applicant| StartBlank[startBlankEnrollment()]
+
+            RenderResults --> SelectFarmer[User Selects Record]
+            SelectFarmer --> ConfirmAction{Action Selected}
+
+            ConfirmAction -->|Renew| LoadProfileOnly[Load Profile Data, Clear Farm Data]
+            ConfirmAction -->|Edit Existing| LoadAll[restoreEnrollmentState() Load All Data]
+
+            StartBlank --> LoadProfileOnly
+            LoadProfileOnly --> StepEngine
+            LoadAll --> StepEngine
+
+            %% Step Validation & Logic
+            StepEngine{{goToStep(target)}}
+            StepEngine -->|Validate| CheckRequired{Fields Valid?}
+            CheckRequired -->|No| AlertError[alert('Required fields missing')]
+            CheckRequired -->|Yes| Transition[Hide Current, Show Target]
+
+            %% Auto-Calculation Triggers
+            Transition --> DynamicCalculations
+
+            subgraph Calcs [Real-time Calculations]
+            Calc1([calculateTotalCover]) -.-> Trigger1(Update Crop Premium UI)
+            Calc2([calculateADSSCover]) -.-> Trigger2(Update ADSS Cover UI)
+            Calc3([calculateLivestockCover]) -.-> Trigger3(Update Livestock Table UI)
+            Calc4([calculateBancaCover]) -.-> Trigger4(Update Banca Cover UI)
+            end
+
+            DynamicCalculations -.-> Calcs
+
+            %% Submission Engine
+            Transition --> SaveTrigger[User Clicks Finalize]
+            SaveTrigger --> FinalizeApp{finalizeApplication(mode)}
+
+            FinalizeApp --> CollectData[Gather input DOM elements]
+            CollectData --> BuildPayload[Construct App Object payload]
+            BuildPayload --> DBSave[db.apps.put(payload)]
+
+            DBSave --> GeneratePDF{generateApplicationPDF()}
+
+            GeneratePDF --> LoadTemplate[Fetch Base64 String/Blob for Ins. Line]
+            LoadTemplate --> MapCoords[Map App Object to jsPDF Coordinates]
+            MapCoords --> DrawData[Draw Text/Signatures via PDF-lib & jsPDF]
+            DrawData --> SaveBlob[Download File to User]
+
+            SaveBlob --> RouteNext{Check finish mode}
+            RouteNext -->|complete| RevertSearch[showView('enrollment')]
+            RouteNext -->|next_farm| ResetForm[resetEnrollmentFields() + Load Current Farmer]
+            end
+
+            %% Secondary Modules
+            subgraph Processing_Modules [Data Processing Logic]
+            direction TB
+
+            %% Batch Summary
+            GenSum[generateSummary(type)] --> FetchFiltered[Query DB w/ Filters]
+            FetchFiltered -->|PDF| SumPDF[Build PDF using jspdf-autotable]
+            FetchFiltered -->|CSV| SumCSV[PapaParse JSON to CSV via Blob]
+
+            %% Importer
+            Import[importData(type, file)] --> ReadFile[FileReader reads text]
+            ReadFile --> Parse[PapaParse string to Array]
+            Parse --> BulkAdd[db[type].bulkPut(array)]
+            end
+
+            ShowView -.->|Triggers| Processing_Modules
+            Processing_Modules -.->|Reads/Writes| LoadDB
+        </div>
+    </div>
+</body>
+
+</html>
