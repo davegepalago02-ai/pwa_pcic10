@@ -69,6 +69,10 @@ self.addEventListener('activate', event => {
                     }
                 })
             );
+        }).then(() => {
+            // Immediately take control of all open clients
+            // so the new SW serves fresh files without needing a tab close
+            return self.clients.claim();
         })
     );
 });

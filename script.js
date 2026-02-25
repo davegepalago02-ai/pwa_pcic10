@@ -236,6 +236,94 @@ window.onload = async () => {
     }
 };
 
+// ============================================================
+// SERVICE WORKER REGISTRATION & UPDATE HANDLER
+// ============================================================
+// This fixes the PWA caching problem:
+//   - Without this, a new SW installs but stays in "waiting"
+//     state — so old files keep being served until the user
+//     manually closes ALL tabs and reopens.
+//   - With this, the new SW skips waiting immediately and
+//     reloads the page so users see the latest version.
+// ============================================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+                console.log('[SW] Registered:', registration.scope);
+
+                // Check if there is already a waiting SW on load
+                // (happens when user opens the app after a new version was cached)
+                if (registration.waiting) {
+                    handleSwUpdate(registration.waiting);
+                    return;
+                }
+
+                // Listen for a NEW SW being found (update available)
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    console.log('[SW] Update found — new worker installing...');
+
+                    newWorker.addEventListener('statechange', () => {
+                        // When new SW has finished installing and is waiting
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('[SW] New version ready — activating...');
+                            handleSwUpdate(newWorker);
+                        }
+                    });
+                });
+            })
+            .catch(err => console.error('[SW] Registration failed:', err));
+
+        // When the SW controller changes (i.e. new SW has taken over),
+        // reload the page so the fresh cached assets are served.
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                console.log('[SW] Controller changed — reloading for fresh assets.');
+                window.location.reload();
+            }
+        });
+    });
+}
+
+/**
+ * Called when a new Service Worker is waiting to activate.
+ * Immediately tells it to skip waiting so it takes control,
+ * which triggers the 'controllerchange' event → page reload.
+ * The "New Update Available" banner has already been shown
+ * using the localStorage version check in initVersionDisplay().
+ */
+function handleSwUpdate(worker) {
+    // Show the update banner if not already visible
+    const banner = document.getElementById('update-banner');
+    if (banner) banner.style.display = 'block';
+
+    // Patch dismiss and close functions to also trigger the SW swap + reload
+    const originalDismiss = window.dismissUpdateBanner;
+    window.dismissUpdateBanner = function (event) {
+        if (event) event.stopPropagation();
+        worker.postMessage({ type: 'SKIP_WAITING' });
+        // reload will happen via controllerchange listener above
+    };
+
+    const originalClose = window.closeReleaseNotesModal;
+    window.closeReleaseNotesModal = function () {
+        if (originalClose) originalClose();
+        worker.postMessage({ type: 'SKIP_WAITING' });
+    };
+
+    // Also wire the banner click (showReleaseNotes) to trigger the swap
+    const bannerEl = document.getElementById('update-banner');
+    if (bannerEl) {
+        bannerEl.addEventListener('click', () => {
+            worker.postMessage({ type: 'SKIP_WAITING' });
+        }, { once: true });
+    }
+}
+// ============================================================
+
 function resizeCanvas() {
     const sigs = [
         { id: 'sig-canvas', pad: typeof signaturePad !== 'undefined' ? signaturePad : null },
