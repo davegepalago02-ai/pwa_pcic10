@@ -1804,8 +1804,11 @@ function populateFarmDropdown(historyArray) {
             const farmId = farm.FARMID || farm.FarmID || farm.FarmId || farm.farmid || 'No ID';
             const area = farm.AREA || farm.Area || farm.area || '0';
             const variety = farm['VARIETY NAME'] || farm['Variety Name'] || farm.Variety || farm.variety || '-';
-            const n = farm.NORTH || farm.North || farm.north || '-';
-            option.textContent = `ID: ${farmId} | Area: ${area} Ha | Var: ${variety} | Bound: N:${n}`;
+            const n = farm.NORTH || farm.North || farm.north || '—';
+            const s = farm.SOUTH || farm.South || farm.south || '—';
+            const e = farm.EAST || farm.East || farm.east || '—';
+            const w = farm.WEST || farm.West || farm.west || '—';
+            option.textContent = `ID: ${farmId} | Area: ${area} Ha | Var: ${variety} | N:${n} S:${s} E:${e} W:${w}`;
         }
 
         select.appendChild(option);
