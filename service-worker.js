@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pcic-app-v1.3.2';
+const CACHE_NAME = 'pcic-app-v1.3.3';
 const urlsToCache = [
     'index.html',
     'style.css',
