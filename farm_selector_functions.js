@@ -14,10 +14,15 @@ function populateFarmDropdown(history) {
         history.forEach((rec, index) => {
             const opt = document.createElement('option');
             opt.value = index; // Use index to retrieve from history array
-            // Construct a readable label: "Sitio, Brgy (Activities)"
-            const loc = `${rec.BARANGAY || rec.Barangay || ''}, ${rec.MUNICIPALITY || rec.Municipality || ''}`;
-            const act = `${rec.PROGRAMTYPE || rec.Crop || 'Crop'} - ${rec.AREA || 0}ha`;
-            opt.text = `${loc} [${act}]`;
+            const farmId = rec.FARMID || rec.FarmID || '';
+            const area = rec.AREA ? `${rec.AREA}ha` : '';
+            const variety = rec.VARIETY || rec.Variety || rec.CROPTYPE || rec.Crop || '';
+            const n = rec.NORTH || '—';
+            const s = rec.SOUTH || '—';
+            const e = rec.EAST || '—';
+            const w = rec.WEST || '—';
+            const bounds = `N:${n} S:${s} E:${e} W:${w}`;
+            opt.text = [farmId, area, variety, bounds].filter(Boolean).join(' | ');
             select.appendChild(opt);
         });
     }
