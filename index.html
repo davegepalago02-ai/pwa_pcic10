@@ -114,15 +114,17 @@
     <div id="workspace">
         <!-- ANNOUNCEMENT BAR -->
         <div id="announcement-bar" class="announcement-bar">
-            <span>
+            <span style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
                     <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                <strong>PCIC Digital Insurance Platform</strong>&nbsp;&mdash; Now serving Region 10 farmers &bull;
-                Available offline anytime
+                <span id="announcement-text" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    <strong>PCIC Digital Insurance Platform</strong>&nbsp;&mdash; Now serving Region 10 farmers &bull;
+                    Available offline anytime
+                </span>
             </span>
             <button class="announcement-dismiss" onclick="this.parentElement.style.display='none'" aria-label="Dismiss"
                 title="Dismiss">&times;</button>
@@ -1110,6 +1112,36 @@
 
         <!-- SETTINGS VIEW -->
         <div id="view-settings" class="content-area" style="display:none">
+
+            <!-- ── Announcement Editor ────────────────────────── -->
+            <div class="card" style="border-left:5px solid #f57c00; background:#fff8f0; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                    <span style="font-size:1.3rem;">📢</span>
+                    <div>
+                        <strong style="color:#e65100; font-size:0.95rem;">Dashboard Announcement</strong>
+                        <p style="margin:2px 0 0; font-size:11px; color:#888;">Type your message — it will appear in the
+                            gold bar at the top for all users on this device.</p>
+                    </div>
+                </div>
+                <textarea id="announcement-input" rows="3" maxlength="200" oninput="updateAnnouncementPreview()"
+                    placeholder="e.g. Enrollment deadline is March 31. Please submit all forms before 5PM." style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #ffcc80;
+                           border-radius:8px; font-size:13px; resize:vertical;
+                           background:#fffde7; font-family:inherit; line-height:1.5;"></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:10px;">
+                    <span id="announcement-char-count" style="font-size:11px; color:#aaa;">0 / 200</span>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="clearAnnouncement()" style="background:#eee; color:#666; border:none; padding:7px 14px;
+                                   border-radius:6px; cursor:pointer; font-size:12px;">Clear</button>
+                        <button onclick="saveAnnouncement()" style="background:#e65100; color:#fff; border:none; padding:7px 18px;
+                                   border-radius:6px; cursor:pointer; font-weight:700; font-size:12px;">Save &amp;
+                            Publish</button>
+                    </div>
+                </div>
+                <div id="announcement-preview" style="margin-top:12px; padding:8px 12px;
+                     background:#f57c00; color:#fff; border-radius:6px; font-size:12px;
+                     display:none;">📢 <span id="announcement-preview-text"></span></div>
+            </div>
+            <!-- ───────────────────────────────────────────────── -->
 
             <div class="card">
                 <div class="section-title">Manage Crop Rates (Per Hectare)</div>
