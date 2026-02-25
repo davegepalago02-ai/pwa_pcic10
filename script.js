@@ -3186,135 +3186,155 @@ Banca Records: ${counts.Banca || 0}
 function importData(type, input) {
     if (!input.files.length) return;
 
-    // Status element (text label next to the button)
+    // Status label next to the import button
     let statusEl = input.parentNode.parentNode.querySelector('.import-status');
     if (!statusEl && input.parentNode.className === 'import-status') statusEl = input.parentNode;
     if (!statusEl) statusEl = input.nextElementSibling;
     if (statusEl && !statusEl.classList.contains('import-status')) statusEl = null;
     if (!statusEl) statusEl = input.parentNode.parentNode.querySelector('.import-status');
 
-    // Show initial status
-    if (statusEl) {
-        statusEl.style.color = '#f57c00';
-        statusEl.innerText = 'Parsing CSV file...';
-    }
+    if (statusEl) { statusEl.style.color = '#f57c00'; statusEl.innerText = 'Starting import...'; }
     input.disabled = true;
 
-    // Progress bar helpers
+    // Progress bar elements
     const progressModal = document.getElementById('csv-import-progress-modal');
     const progressBar = document.getElementById('csv-import-progress-bar');
     const progressPct = document.getElementById('csv-import-pct-label');
     const progressCount = document.getElementById('csv-import-count-label');
     const progressStatus = document.getElementById('csv-import-status-label');
 
-    function showProgress(done, total, label) {
+    function showProgress(written, label) {
         if (!progressModal) return;
-        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
         progressModal.style.display = 'flex';
-        if (progressBar) progressBar.style.width = pct + '%';
-        if (progressPct) progressPct.innerText = pct + '%';
-        if (progressCount) progressCount.innerText = `${done.toLocaleString()} / ${total.toLocaleString()} rows`;
+        if (progressBar) progressBar.style.width = '100%'; // indeterminate while streaming
+        if (progressPct) progressPct.innerText = '—';
+        if (progressCount) progressCount.innerText = `${written.toLocaleString()} rows written`;
         if (progressStatus) progressStatus.innerText = label || 'Writing to database...';
     }
 
     function hideProgress() {
         if (progressModal) progressModal.style.display = 'none';
         if (progressBar) progressBar.style.width = '0%';
+        if (progressPct) progressPct.innerText = '0%';
     }
 
-    // Yield to browser to allow UI repaint between chunks
+    // Yield to browser so the UI can repaint
     const yieldToUI = () => new Promise(resolve => setTimeout(resolve, 0));
 
-    setTimeout(() => {
-        showProgress(0, 0, 'Parsing CSV file...');
-
-        Papa.parse(input.files[0], {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (res) => {
-                try {
-                    const CHUNK_SIZE = 500;
-                    const total = res.data.length;
-
-                    showProgress(0, total, 'Normalizing rows...');
-                    await yieldToUI();
-
-                    // ── Normalize all rows ──────────────────────────────
-                    const norm = res.data.map(r => {
-                        const n = {};
-                        Object.keys(r).forEach(k => {
-                            let nk = normalizeKey(k);
-                            if (type === 'records') {
-                                if (nk.toUpperCase() === 'FARMERSID') nk = 'FARMERSID';
-                                if (nk.toUpperCase() === 'CICNO') nk = 'CICNO';
-                                if (nk.toUpperCase() === 'PROGRAMTYPE') nk = 'PROGRAMTYPE';
-                            } else if (type === 'profiles') {
-                                if (nk.toUpperCase() === 'FARMERSID') nk = 'FarmersID';
-                                if (nk.toUpperCase() === 'RSBSAID') nk = 'RSBSAID';
-                            }
-                            n[nk] = r[k];
-                        });
-                        return n;
-                    });
-
-                    // ── Clear existing data ─────────────────────────────
-                    showProgress(0, total, 'Clearing old data...');
-                    await yieldToUI();
-                    if (type === 'profiles') {
-                        await db.profiles.clear();
-                    } else {
-                        await db.records.clear();
-                    }
-
-                    // ── Chunked bulk write with live progress ───────────
-                    let written = 0;
-                    const table = type === 'profiles' ? db.profiles : db.records;
-
-                    for (let start = 0; start < total; start += CHUNK_SIZE) {
-                        const chunk = norm.slice(start, start + CHUNK_SIZE);
-                        await table.bulkPut(chunk);
-                        written += chunk.length;
-                        showProgress(written, total, `Writing rows ${written.toLocaleString()} of ${total.toLocaleString()}...`);
-                        await yieldToUI(); // let browser repaint progress bar
-                    }
-
-                    // ── Success ─────────────────────────────────────────
-                    hideProgress();
-                    if (typeof updateStatus === 'function') updateStatus();
-
-                    if (statusEl) {
-                        statusEl.innerText = `✅ Imported ${total.toLocaleString()} records`;
-                        statusEl.style.color = 'green';
-                        setTimeout(() => { statusEl.innerText = ''; }, 4000);
-                    }
-
-                    alert(`✅ Import complete!\n${total.toLocaleString()} ${type} records imported successfully.`);
-
-                } catch (e) {
-                    hideProgress();
-                    console.error('Import error:', e);
-                    if (statusEl) {
-                        statusEl.innerText = 'Error: ' + e.message;
-                        statusEl.style.color = 'red';
-                    }
-                    alert('Error importing data: ' + e.message);
-                } finally {
-                    input.disabled = false;
-                    input.value = '';
-                }
-            },
-            error: (err) => {
-                hideProgress();
-                console.error('CSV Parse error:', err);
-                if (statusEl) {
-                    statusEl.innerText = 'Error parsing CSV';
-                    statusEl.style.color = 'red';
-                }
-                alert('Error parsing CSV: ' + err.message);
-                input.disabled = false;
-                input.value = '';
+    // ── Key normaliser (same as the original) ────────────────────
+    function normaliseRow(r) {
+        const n = {};
+        Object.keys(r).forEach(k => {
+            let nk = normalizeKey(k);
+            if (type === 'records') {
+                if (nk.toUpperCase() === 'FARMERSID') nk = 'FARMERSID';
+                if (nk.toUpperCase() === 'CICNO') nk = 'CICNO';
+                if (nk.toUpperCase() === 'PROGRAMTYPE') nk = 'PROGRAMTYPE';
+            } else if (type === 'profiles') {
+                if (nk.toUpperCase() === 'FARMERSID') nk = 'FarmersID';
+                if (nk.toUpperCase() === 'RSBSAID') nk = 'RSBSAID';
             }
+            n[nk] = r[k];
         });
+        return n;
+    }
+
+    setTimeout(async () => {
+        try {
+            const CHUNK_SIZE = 500;         // rows held in RAM at once
+            const table = type === 'profiles' ? db.profiles : db.records;
+
+            // ── Step 1: Clear existing data BEFORE parsing ────────
+            // We do this first because streaming starts writes immediately
+            showProgress(0, 'Clearing old data...');
+            await yieldToUI();
+            await table.clear();
+
+            showProgress(0, 'Streaming CSV — reading rows...');
+            await yieldToUI();
+
+            // ── Step 2: Stream-parse + chunk-write ────────────────
+            let rowBuffer = [];
+            let written = 0;
+            let parseError = null;
+
+            await new Promise((resolve, reject) => {
+                Papa.parse(input.files[0], {
+                    header: true,
+                    skipEmptyLines: true,
+
+                    // ─ step: called once per row (streaming) ─────────
+                    // Only CHUNK_SIZE rows ever live in memory at once.
+                    step: (result, parser) => {
+                        rowBuffer.push(normaliseRow(result.data));
+
+                        if (rowBuffer.length >= CHUNK_SIZE) {
+                            // Pause the parser while we flush to IndexedDB
+                            parser.pause();
+
+                            const chunk = rowBuffer.splice(0);   // drain buffer
+                            table.bulkPut(chunk)
+                                .then(() => {
+                                    written += chunk.length;
+                                    showProgress(written, `Writing — ${written.toLocaleString()} rows so far...`);
+                                    parser.resume();
+                                })
+                                .catch(err => {
+                                    parseError = err;
+                                    parser.abort();
+                                    reject(err);
+                                });
+                        }
+                    },
+
+                    // ─ complete: flush any remaining rows ─────────────
+                    complete: () => {
+                        if (parseError) return;          // already rejected above
+
+                        const flushRemaining = async () => {
+                            if (rowBuffer.length > 0) {
+                                const last = rowBuffer.splice(0);
+                                await table.bulkPut(last);
+                                written += last.length;
+                                showProgress(written, 'Finalising...');
+                                await yieldToUI();
+                            }
+                            resolve(written);
+                        };
+                        flushRemaining().catch(reject);
+                    },
+
+                    error: (err) => reject(err)
+                });
+            });
+
+            // ── Step 3: Success ───────────────────────────────────
+            hideProgress();
+
+            // Update progress bar to 100% on success
+            if (progressBar) progressBar.style.width = '100%';
+            if (progressPct) progressPct.innerText = '100%';
+            if (progressCount) progressCount.innerText = `${written.toLocaleString()} rows written`;
+
+            if (typeof updateStatus === 'function') updateStatus();
+
+            if (statusEl) {
+                statusEl.innerText = `✅ Imported ${written.toLocaleString()} records`;
+                statusEl.style.color = 'green';
+                setTimeout(() => { statusEl.innerText = '', 4000 });
+            }
+
+            alert(`✅ Import complete!\n${written.toLocaleString()} ${type} records imported.`);
+
+        } catch (e) {
+            hideProgress();
+            console.error('Import error:', e);
+            if (statusEl) { statusEl.innerText = 'Error: ' + e.message; statusEl.style.color = 'red'; }
+            alert('Error importing data: ' + e.message);
+        } finally {
+            input.disabled = false;
+            input.value = '';
+        }
     }, 50);
 }
 
