@@ -128,16 +128,58 @@
                 title="Dismiss">&times;</button>
         </div>
 
-        <!-- UPDATE BANNER -->
-        <div id="update-banner" class="update-banner" style="display: none;" onclick="showReleaseNotes()">
-            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                <span>🚀 <strong>New Update Available!</strong> Version <span id="banner-version"></span> has been
-                    released. Click to see what's new.</span>
-                <button onclick="dismissUpdateBanner(event)"
-                    style="background: none; border: none; color: white; cursor: pointer; padding: 0 5px;">
-                    <i class="fas fa-times"></i>
-                </button>
+        <!-- UPDATE TOAST CARD (tablet-optimised) -->
+        <div id="update-banner" style="
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            width: min(360px, calc(100vw - 48px));
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+            border-left: 6px solid #2e7d32;
+            padding: 20px 22px 18px;
+            animation: slideUpToast 0.35s cubic-bezier(.22,1,.36,1);
+        ">
+            <!-- Header row -->
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.5rem;">🚀</span>
+                    <div>
+                        <div style="font-weight:700; font-size:0.92rem; color:#1b5e20;">New Version Available</div>
+                        <div style="font-size:0.76rem; color:#666; margin-top:1px;">
+                            v<span id="banner-version"></span> — tap below to update now
+                        </div>
+                    </div>
+                </div>
+                <!-- Dismiss (small X) -->
+                <button onclick="dismissUpdateBanner(event)" aria-label="Dismiss" style="
+                    background:none; border:none; cursor:pointer;
+                    color:#aaa; font-size:1.1rem; padding:0 0 0 8px; line-height:1;
+                ">✕</button>
             </div>
+
+            <!-- What's new link -->
+            <p onclick="showReleaseNotes()" style="
+                font-size:0.77rem; color:#2e7d32; margin:0 0 14px;
+                cursor:pointer; text-decoration:underline;
+            ">View release notes ↗</p>
+
+            <!-- Primary CTA —— big finger-friendly button -->
+            <button id="update-now-btn" onclick="dismissUpdateBanner(event)" style="
+                display:block; width:100%;
+                background: linear-gradient(135deg,#2e7d32,#43a047);
+                color:#fff; border:none; border-radius:12px;
+                padding:14px 0; font-size:1rem; font-weight:700;
+                cursor:pointer; letter-spacing:0.3px;
+                box-shadow: 0 4px 16px rgba(46,125,50,0.35);
+                transition: opacity 0.15s;
+            " onmousedown="this.style.opacity='0.85'" onmouseup="this.style.opacity='1'">
+                ⬆ Tap to Update Now
+                &nbsp;<span id="update-countdown" style="font-size:0.78rem; opacity:0.75;"></span>
+            </button>
         </div>
 
         <div class="app-header">

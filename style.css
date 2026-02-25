@@ -1490,6 +1490,17 @@ select:focus {
     transition: background 0.2s;
 }
 
-.update-banner:hover {
-    background-color: #fbc02d;
+/* OLD .update-banner hover no longer needed — replaced by toast card */
+
+/* Update toast card entrance animation */
+@keyframes slideUpToast {
+    from {
+        opacity: 0;
+        transform: translateY(32px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }

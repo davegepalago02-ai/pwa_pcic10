@@ -290,37 +290,52 @@ if ('serviceWorker' in navigator) {
 
 /**
  * Called when a new Service Worker is waiting to activate.
- * Immediately tells it to skip waiting so it takes control,
- * which triggers the 'controllerchange' event → page reload.
- * The "New Update Available" banner has already been shown
- * using the localStorage version check in initVersionDisplay().
+ * Shows the tablet-optimised update toast card with a 30-second
+ * auto-update countdown. The agent can tap the button at any time,
+ * or it will auto-apply after the countdown expires.
  */
 function handleSwUpdate(worker) {
-    // Show the update banner if not already visible
     const banner = document.getElementById('update-banner');
-    if (banner) banner.style.display = 'block';
+    const countdownEl = document.getElementById('update-countdown');
+    if (!banner) return;
 
-    // Patch dismiss and close functions to also trigger the SW swap + reload
-    const originalDismiss = window.dismissUpdateBanner;
+    // Show the toast card
+    banner.style.display = 'block';
+
+    // ── 30-second auto-update countdown ─────────────────────────
+    let secondsLeft = 30;
+    let countdownTimer = null;
+
+    function applyUpdate() {
+        if (countdownTimer) clearInterval(countdownTimer);
+        banner.style.display = 'none';
+        worker.postMessage({ type: 'SKIP_WAITING' });
+        // page reloads via the 'controllerchange' listener registered above
+    }
+
+    function tickCountdown() {
+        secondsLeft--;
+        if (countdownEl) countdownEl.innerText = `(auto in ${secondsLeft}s)`;
+        if (secondsLeft <= 0) applyUpdate();
+    }
+
+    if (countdownEl) countdownEl.innerText = `(auto in ${secondsLeft}s)`;
+    countdownTimer = setInterval(tickCountdown, 1000);
+
+    // ── Wire all user-triggered paths to apply the update ────────
+
+    // 1. "Tap to Update Now" button (and the whole banner area)
     window.dismissUpdateBanner = function (event) {
         if (event) event.stopPropagation();
-        worker.postMessage({ type: 'SKIP_WAITING' });
-        // reload will happen via controllerchange listener above
+        applyUpdate();
     };
 
+    // 2. Closing the release notes modal should also apply update
     const originalClose = window.closeReleaseNotesModal;
     window.closeReleaseNotesModal = function () {
         if (originalClose) originalClose();
-        worker.postMessage({ type: 'SKIP_WAITING' });
+        applyUpdate();
     };
-
-    // Also wire the banner click (showReleaseNotes) to trigger the swap
-    const bannerEl = document.getElementById('update-banner');
-    if (bannerEl) {
-        bannerEl.addEventListener('click', () => {
-            worker.postMessage({ type: 'SKIP_WAITING' });
-        }, { once: true });
-    }
 }
 // ============================================================
 
