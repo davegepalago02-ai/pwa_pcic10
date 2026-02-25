@@ -1,16 +1,20 @@
 <!-- 
   PCIC DIGITAL INSURANCE APPLICATION
-  Version: 1.0.2
-  Last Updated: January 29, 2026
+  Version: 1.3.0
+  Last Updated: February 25, 2026
   
-  VERSION HISTORY//edit version in line 1498
+  VERSION HISTORY//edit version in script.js APP_VERSION constant
   ------------------------------------------------------------------------------
+  v1.3.0 (2026-02-25)- [FEAT] Full Home Dashboard UI redesign: satellite background,
+                        glassmorphism hero card, SVG sidebar icons, announcement banner,
+                        3-column footer. New Geospatial Digital Insurance platform aesthetic.
+  v1.2.6 (2026-02-24)- Relocated brochure access to Home Dashboard; added brochure modal.
   v1.2.3 (2026-02-24)- Updated dynamic PDF generation filename logic per line.
-  v1.2.2 (2026-02-24)- Added Update Banner and Release Notes Modal
-  v1.1.2 (2026-01-30)-  Embeded the PCIC RO10 logo to the script, fixed one line edit for version
-  v1.0.2 (2026-01-29) - [FIX] Replaced 'Suffix' with 'Middle Name'; Fixed Save bugs; Verified PDF & Summary.
-  v1.0.1 (2026-01-28) - [FEAT] Added Farm Selector; Fixed blank PDF issues.
-  v1.0.0 (2026-01-01) - Initial Release.
+  v1.2.2 (2026-02-24)- Added Update Banner and Release Notes Modal.
+  v1.1.2 (2026-01-30)- Embedded the PCIC RO10 logo to the script.
+  v1.0.2 (2026-01-29)- [FIX] Replaced 'Suffix' with 'Middle Name'; Fixed Save bugs.
+  v1.0.1 (2026-01-28)- [FEAT] Added Farm Selector; Fixed blank PDF issues.
+  v1.0.0 (2026-01-01)- Initial Release.
   ------------------------------------------------------------------------------
 -->
 <!DOCTYPE html>
@@ -19,7 +23,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCIC Ro10 Digital Insurance Application v1.2.3 </title>
+    <title>PCIC Ro10 Digital Insurance Application v1.3.0</title>
     <!-- Core Libraries (Offline) -->
     <script src="lib/dexie.js"></script>
     <script src="lib/papaparse.min.js"></script>
@@ -100,8 +104,10 @@
             <div class="welcome-content">
                 <div class="welcome-hero">
                     <h1 class="welcome-title">PCIC DIGITAL INSURANCE APPLICATION</h1>
-                    <p class="welcome-subtitle">Welcome to the PCIC RO10 Digital Insurance Application. This platform is designed to
-                      modernize the insurance application process, ensuring faster turnaround times and improved data accuracy for our farmers and stakeholders.</p>
+                    <p class="welcome-subtitle">Welcome to the PCIC RO10 Digital Insurance Application. This platform is
+                        designed to
+                        modernize the insurance application process, ensuring faster turnaround times and improved data
+                        accuracy for our farmers and stakeholders.</p>
                 </div>
 
                 <div class="welcome-actions">
@@ -1360,7 +1366,19 @@
                     Release Notes</h3>
 
                 <div style="margin-bottom: 15px;">
-                    <h4 style="color: #1976d2; margin-bottom: 5px;">v1.2.6 (Latest)</h4>
+                    <h4 style="color: #1976d2; margin-bottom: 5px;">v1.3.0 (Latest)</h4>
+                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
+                        <li>Full Home Dashboard UI redesign — Geospatial Digital Insurance aesthetic</li>
+                        <li>Satellite paddy field background with white vector grid overlay</li>
+                        <li>Glassmorphism hero card with vibrant yellow CTA and ghost secondary buttons</li>
+                        <li>Sidebar redesigned with SVG line icons, glassmorphism, and nav divider</li>
+                        <li>Gold announcement banner added above the app header</li>
+                        <li>Three-column footer: Location, Contact, Social</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #666; margin-bottom: 5px;">v1.2.6 (2026-02-24)</h4>
                     <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
                         <li>Relocated brochure access to the Home Dashboard for better visibility</li>
                         <li>Replaced long sidebar menu with a clean brochure selection modal</li>
