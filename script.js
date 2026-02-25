@@ -3171,44 +3171,69 @@ Banca Records: ${counts.Banca || 0}
 function importData(type, input) {
     if (!input.files.length) return;
 
-    // 1. Create/Update Status Element
+    // Status element (text label next to the button)
     let statusEl = input.parentNode.parentNode.querySelector('.import-status');
-    // Fallback definitions for robustness
     if (!statusEl && input.parentNode.className === 'import-status') statusEl = input.parentNode;
     if (!statusEl) statusEl = input.nextElementSibling;
     if (statusEl && !statusEl.classList.contains('import-status')) statusEl = null;
+    if (!statusEl) statusEl = input.parentNode.parentNode.querySelector('.import-status');
 
-    // New UI Structure Check
-    if (!statusEl) {
-        statusEl = input.parentNode.parentNode.querySelector('.import-status');
-    }
-
+    // Show initial status
     if (statusEl) {
         statusEl.style.color = '#f57c00';
-        statusEl.innerText = "Importing database... Please wait...";
+        statusEl.innerText = 'Parsing CSV file...';
     }
-
     input.disabled = true;
 
-    // 3. Process Import (wrapped in setTimeout to render UI)
+    // Progress bar helpers
+    const progressModal = document.getElementById('csv-import-progress-modal');
+    const progressBar = document.getElementById('csv-import-progress-bar');
+    const progressPct = document.getElementById('csv-import-pct-label');
+    const progressCount = document.getElementById('csv-import-count-label');
+    const progressStatus = document.getElementById('csv-import-status-label');
+
+    function showProgress(done, total, label) {
+        if (!progressModal) return;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        progressModal.style.display = 'flex';
+        if (progressBar) progressBar.style.width = pct + '%';
+        if (progressPct) progressPct.innerText = pct + '%';
+        if (progressCount) progressCount.innerText = `${done.toLocaleString()} / ${total.toLocaleString()} rows`;
+        if (progressStatus) progressStatus.innerText = label || 'Writing to database...';
+    }
+
+    function hideProgress() {
+        if (progressModal) progressModal.style.display = 'none';
+        if (progressBar) progressBar.style.width = '0%';
+    }
+
+    // Yield to browser to allow UI repaint between chunks
+    const yieldToUI = () => new Promise(resolve => setTimeout(resolve, 0));
+
     setTimeout(() => {
+        showProgress(0, 0, 'Parsing CSV file...');
+
         Papa.parse(input.files[0], {
             header: true,
             skipEmptyLines: true,
             complete: async (res) => {
                 try {
+                    const CHUNK_SIZE = 500;
+                    const total = res.data.length;
+
+                    showProgress(0, total, 'Normalizing rows...');
+                    await yieldToUI();
+
+                    // ── Normalize all rows ──────────────────────────────
                     const norm = res.data.map(r => {
                         const n = {};
                         Object.keys(r).forEach(k => {
                             let nk = normalizeKey(k);
-                            // Schema Alignment Fixes: Map normalized keys to Schema-defined Case
                             if (type === 'records') {
-                                // 'records' table uses UPPERCASE for index keys
                                 if (nk.toUpperCase() === 'FARMERSID') nk = 'FARMERSID';
                                 if (nk.toUpperCase() === 'CICNO') nk = 'CICNO';
                                 if (nk.toUpperCase() === 'PROGRAMTYPE') nk = 'PROGRAMTYPE';
                             } else if (type === 'profiles') {
-                                // 'profiles' table uses PascalCase for keys
                                 if (nk.toUpperCase() === 'FARMERSID') nk = 'FarmersID';
                                 if (nk.toUpperCase() === 'RSBSAID') nk = 'RSBSAID';
                             }
@@ -3217,44 +3242,60 @@ function importData(type, input) {
                         return n;
                     });
 
-                    // CLEAR EXISTING DATA BEFORE IMPORTING
+                    // ── Clear existing data ─────────────────────────────
+                    showProgress(0, total, 'Clearing old data...');
+                    await yieldToUI();
                     if (type === 'profiles') {
                         await db.profiles.clear();
-                        await db.profiles.bulkPut(norm);
                     } else {
                         await db.records.clear();
-                        await db.records.bulkPut(norm);
                     }
 
-                    // 4. Success State
+                    // ── Chunked bulk write with live progress ───────────
+                    let written = 0;
+                    const table = type === 'profiles' ? db.profiles : db.records;
+
+                    for (let start = 0; start < total; start += CHUNK_SIZE) {
+                        const chunk = norm.slice(start, start + CHUNK_SIZE);
+                        await table.bulkPut(chunk);
+                        written += chunk.length;
+                        showProgress(written, total, `Writing rows ${written.toLocaleString()} of ${total.toLocaleString()}...`);
+                        await yieldToUI(); // let browser repaint progress bar
+                    }
+
+                    // ── Success ─────────────────────────────────────────
+                    hideProgress();
                     if (typeof updateStatus === 'function') updateStatus();
-                    alert("Database update complete. Imported " + norm.length + " items (Previous data cleared).");
 
                     if (statusEl) {
-                        statusEl.innerText = "Import Successful!";
+                        statusEl.innerText = `✅ Imported ${total.toLocaleString()} records`;
                         statusEl.style.color = 'green';
-                        setTimeout(() => statusEl.innerText = "", 3000);
+                        setTimeout(() => { statusEl.innerText = ''; }, 4000);
                     }
+
+                    alert(`✅ Import complete!\n${total.toLocaleString()} ${type} records imported successfully.`);
 
                 } catch (e) {
-                    console.error("Import error:", e);
-                    alert("Error importing data: " + e.message);
+                    hideProgress();
+                    console.error('Import error:', e);
                     if (statusEl) {
-                        statusEl.innerText = "Error: " + e.message;
+                        statusEl.innerText = 'Error: ' + e.message;
                         statusEl.style.color = 'red';
                     }
+                    alert('Error importing data: ' + e.message);
                 } finally {
                     input.disabled = false;
                     input.value = '';
                 }
             },
             error: (err) => {
-                console.error("CSV Parse error:", err);
-                alert("Error parsing CSV: " + err.message);
+                hideProgress();
+                console.error('CSV Parse error:', err);
                 if (statusEl) {
-                    statusEl.innerText = "Error parsing CSV";
+                    statusEl.innerText = 'Error parsing CSV';
                     statusEl.style.color = 'red';
                 }
+                alert('Error parsing CSV: ' + err.message);
                 input.disabled = false;
                 input.value = '';
             }
