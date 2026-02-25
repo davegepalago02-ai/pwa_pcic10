@@ -888,10 +888,13 @@ async function ensureDefaultRates() {
         { name: 'Watermelon', rate: 45000 }
     ];
 
-    for (const crop of defaults) {
-        const existing = await db.hvc_rates.get(crop.name);
-        if (!existing) await db.hvc_rates.put(crop);
-    }
+    // Fast path: if rates already exist, skip entirely (no DB writes needed)
+    const existingCount = await db.hvc_rates.count();
+    if (existingCount >= defaults.length) return;
+
+    // First run only: bulk-insert all defaults in a single transaction
+    // This replaces 50 sequential await calls with one fast operation
+    await db.hvc_rates.bulkPut(defaults);
 }
 
 async function addCropRate() {
