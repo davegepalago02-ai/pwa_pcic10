@@ -175,7 +175,6 @@ window.onload = async () => {
     try {
         console.log("Starting Initialization...");
         initVersionDisplay();
-        initAnnouncement();         // Load saved announcement into bar
         const canvas = document.getElementById('sig-canvas');
         if (canvas) signaturePad = new SignaturePad(canvas);
 
@@ -237,83 +236,6 @@ window.onload = async () => {
     }
 };
 
-// ============================================================
-// ANNOUNCEMENT BAR MANAGEMENT
-// ============================================================
-const ANNOUNCEMENT_KEY = 'pcic_announcement';
-const DEFAULT_ANNOUNCEMENT = '<strong>PCIC Digital Insurance Platform</strong>&nbsp;&mdash; Now serving Region 10 farmers &bull; Available offline anytime';
-
-function initAnnouncement() {
-    const saved = localStorage.getItem(ANNOUNCEMENT_KEY);
-    const bar = document.getElementById('announcement-bar');
-    const el = document.getElementById('announcement-text');
-    if (!el) return;
-
-    if (saved && saved.trim()) {
-        el.innerHTML = '📢 ' + saved;
-        if (bar) bar.style.display = 'flex'; // always show when custom msg set
-    } else {
-        el.innerHTML = DEFAULT_ANNOUNCEMENT;
-    }
-
-    // Pre-fill Settings editor with saved value
-    const input = document.getElementById('announcement-input');
-    if (input && saved) {
-        input.value = saved;
-        updateAnnouncementPreview();
-    }
-}
-
-function saveAnnouncement() {
-    const input = document.getElementById('announcement-input');
-    if (!input) return;
-    const msg = input.value.trim();
-    if (!msg) { clearAnnouncement(); return; }
-
-    localStorage.setItem(ANNOUNCEMENT_KEY, msg);
-
-    // Update bar immediately
-    const el = document.getElementById('announcement-text');
-    const bar = document.getElementById('announcement-bar');
-    if (el) el.innerHTML = '📢 ' + msg;
-    if (bar) { bar.style.display = 'flex'; }
-
-    updateAnnouncementPreview();
-    alert('✅ Announcement saved! It will appear in the top bar.');
-}
-
-function clearAnnouncement() {
-    localStorage.removeItem(ANNOUNCEMENT_KEY);
-
-    const input = document.getElementById('announcement-input');
-    if (input) { input.value = ''; updateAnnouncementPreview(); }
-
-    // Restore default
-    const el = document.getElementById('announcement-text');
-    if (el) el.innerHTML = DEFAULT_ANNOUNCEMENT;
-
-    alert('Announcement cleared. Default message restored.');
-}
-
-function updateAnnouncementPreview() {
-    const input = document.getElementById('announcement-input');
-    const preview = document.getElementById('announcement-preview');
-    const preText = document.getElementById('announcement-preview-text');
-    const counter = document.getElementById('announcement-char-count');
-    if (!input) return;
-
-    const msg = input.value;
-    if (counter) counter.innerText = `${msg.length} / 200`;
-    if (preview && preText) {
-        if (msg.trim()) {
-            preText.innerText = msg;
-            preview.style.display = 'block';
-        } else {
-            preview.style.display = 'none';
-        }
-    }
-}
-// ============================================================
 
 // ============================================================
 // SERVICE WORKER REGISTRATION & UPDATE HANDLER
