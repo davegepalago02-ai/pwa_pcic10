@@ -250,6 +250,14 @@
                                 </svg>
                                 View Brochures
                             </button>
+                            <button class="btn-ghost"
+                                onclick="document.getElementById('feedback-modal').style.display='flex'">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                                Send Feedback
+                            </button>
                         </div>
                     </div>
                 </div><!-- END HERO CARD -->
@@ -278,6 +286,54 @@
 
             </div>
         </div>
+
+        <!-- FEEDBACK MODAL -->
+        <div id="feedback-modal" class="ug-modal-overlay" onclick="handleFeedbackOverlayClick(event)">
+            <div class="ug-modal-panel" style="max-width:520px;">
+                <div class="ug-modal-header" style="background:#1565c0;">
+                    <div><i class="fas fa-comment-dots" style="margin-right:8px;"></i> Send Feedback</div>
+                    <button class="ug-close-btn" onclick="closeFeedbackModal()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="ug-modal-body" style="padding:24px; background:#fafafa; overflow-y:auto;">
+                    <p style="font-size:12px; color:#666; margin:0 0 18px;">Your feedback helps us improve the app.
+                        This will open your email app with the details pre-filled — just tap <strong>Send</strong>.</p>
+
+                    <div class="input-group" style="margin-bottom:14px;">
+                        <label style="font-size:12px; font-weight:600; color:#333;">Underwriter / Agent Name <span
+                                style="color:red;">*</span></label>
+                        <input type="text" id="fb_name" placeholder="Your full name" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #ddd;
+                                   border-radius:6px; font-size:13px; margin-top:4px;">
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:14px;">
+                        <label style="font-size:12px; font-weight:600; color:#333;">Issues / Problems Encountered <span
+                                style="color:red;">*</span></label>
+                        <textarea id="fb_issues" rows="4" placeholder="Describe the issue or problem in detail..."
+                            style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #ddd;
+                                   border-radius:6px; font-size:13px; resize:vertical; margin-top:4px;
+                                   font-family:inherit; line-height:1.5;"></textarea>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:20px;">
+                        <label style="font-size:12px; font-weight:600; color:#333;">Suggestions (Optional)</label>
+                        <textarea id="fb_suggestions" rows="3" placeholder="Any suggestions for improvement..." style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #ddd;
+                                   border-radius:6px; font-size:13px; resize:vertical; margin-top:4px;
+                                   font-family:inherit; line-height:1.5;"></textarea>
+                    </div>
+
+                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button onclick="closeFeedbackModal()" style="background:#eee; color:#555; border:none; padding:10px 20px;
+                                   border-radius:6px; font-size:13px; cursor:pointer;">Cancel</button>
+                        <button onclick="sendFeedback()" style="background:#1565c0; color:#fff; border:none; padding:10px 22px;
+                                   border-radius:6px; font-size:13px; font-weight:700; cursor:pointer;
+                                   display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-paper-plane"></i> Open Email &amp; Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END FEEDBACK MODAL -->
 
         <!-- ENROLLMENT VIEW -->
 

@@ -238,6 +238,64 @@ window.onload = async () => {
 
 
 // ============================================================
+// FEEDBACK MODAL
+// ============================================================
+function closeFeedbackModal() {
+    const modal = document.getElementById('feedback-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function handleFeedbackOverlayClick(event) {
+    if (event.target === document.getElementById('feedback-modal')) {
+        closeFeedbackModal();
+    }
+}
+
+function sendFeedback() {
+    const name = (document.getElementById('fb_name') || {}).value?.trim() || '';
+    const issues = (document.getElementById('fb_issues') || {}).value?.trim() || '';
+    const suggestions = (document.getElementById('fb_suggestions') || {}).value?.trim() || '';
+
+    if (!name) { alert('Please enter your name before sending.'); return; }
+    if (!issues) { alert('Please describe the issue or problem encountered.'); return; }
+
+    const to = 'ro10msd@pcicgov.onmicrosoft.com';
+    const subject = `[App Feedback] ${name} — PCIC Digital Insurance App`;
+    const body = [
+        `PCIC Digital Insurance App — User Feedback`,
+        `==========================================`,
+        ``,
+        `Underwriter / Agent Name:`,
+        name,
+        ``,
+        `Issues / Problems Encountered:`,
+        issues,
+        ``,
+        `Suggestions:`,
+        suggestions || '(none)',
+        ``,
+        `--`,
+        `Sent from PCIC Digital Insurance App v${typeof APP_VERSION !== 'undefined' ? APP_VERSION : ''}`,
+        `Device: ${navigator.userAgent}`,
+    ].join('\n');
+
+    const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+
+    // Clear form and close after a short delay (so email app can open)
+    setTimeout(() => {
+        const nameEl = document.getElementById('fb_name');
+        const issuesEl = document.getElementById('fb_issues');
+        const suggestionsEl = document.getElementById('fb_suggestions');
+        if (nameEl) nameEl.value = '';
+        if (issuesEl) issuesEl.value = '';
+        if (suggestionsEl) suggestionsEl.value = '';
+        closeFeedbackModal();
+    }, 800);
+}
+// ============================================================
+
+// ============================================================
 // SERVICE WORKER REGISTRATION & UPDATE HANDLER
 // ============================================================
 // This fixes the PWA caching problem:
