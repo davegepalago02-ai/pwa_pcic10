@@ -3183,6 +3183,36 @@ Banca Records: ${counts.Banca || 0}
     }
 }
 
+/**
+ * Fast row-counter: reads the file in 64KB chunks and counts newlines.
+ * Uses max 64KB of RAM regardless of file size. Subtracts 1 for the header.
+ */
+function countCSVLines(file) {
+    return new Promise((resolve) => {
+        const SCAN = 65536; // 64 KB per chunk
+        let offset = 0;
+        let newlines = 0;
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const text = e.target.result;
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] === '\n') newlines++;
+            }
+            offset += SCAN;
+            if (offset < file.size) {
+                reader.readAsText(file.slice(offset, offset + SCAN));
+            } else {
+                // subtract 1 for the header row; ensure non-negative
+                resolve(Math.max(0, newlines - 1));
+            }
+        };
+
+        reader.onerror = () => resolve(0); // fallback: unknown total
+        reader.readAsText(file.slice(0, SCAN));
+    });
+}
+
 function importData(type, input) {
     if (!input.files.length) return;
 
@@ -3203,12 +3233,16 @@ function importData(type, input) {
     const progressCount = document.getElementById('csv-import-count-label');
     const progressStatus = document.getElementById('csv-import-status-label');
 
-    function showProgress(written, label) {
+    function showProgress(written, total, label) {
         if (!progressModal) return;
         progressModal.style.display = 'flex';
-        if (progressBar) progressBar.style.width = '100%'; // indeterminate while streaming
-        if (progressPct) progressPct.innerText = '—';
-        if (progressCount) progressCount.innerText = `${written.toLocaleString()} rows written`;
+        const pct = total > 0 ? Math.round((written / total) * 100) : 0;
+        const barW = total > 0 ? pct + '%' : '100%'; // pulsing full bar when total unknown
+        if (progressBar) progressBar.style.width = barW;
+        if (progressPct) progressPct.innerText = total > 0 ? pct + '%' : '—';
+        if (progressCount) progressCount.innerText = total > 0
+            ? `${written.toLocaleString()} / ${total.toLocaleString()} rows`
+            : `${written.toLocaleString()} rows written`;
         if (progressStatus) progressStatus.innerText = label || 'Writing to database...';
     }
 
@@ -3244,13 +3278,17 @@ function importData(type, input) {
             const CHUNK_SIZE = 500;         // rows held in RAM at once
             const table = type === 'profiles' ? db.profiles : db.records;
 
-            // ── Step 1: Clear existing data BEFORE parsing ────────
-            // We do this first because streaming starts writes immediately
-            showProgress(0, 'Clearing old data...');
+            // ── Step 1: Fast pre-scan to count total rows (64KB chunks, ~50ms) ──
+            showProgress(0, 0, 'Counting rows...');
+            await yieldToUI();
+            const totalRows = await countCSVLines(input.files[0]);
+
+            // ── Step 2: Clear existing data BEFORE parsing ────────
+            showProgress(0, totalRows, 'Clearing old data...');
             await yieldToUI();
             await table.clear();
 
-            showProgress(0, 'Streaming CSV — reading rows...');
+            showProgress(0, totalRows, 'Starting import...');
             await yieldToUI();
 
             // ── Step 2: Stream-parse + chunk-write ────────────────
@@ -3276,7 +3314,8 @@ function importData(type, input) {
                             table.bulkPut(chunk)
                                 .then(() => {
                                     written += chunk.length;
-                                    showProgress(written, `Writing — ${written.toLocaleString()} rows so far...`);
+                                    showProgress(written, totalRows,
+                                        `Writing — ${written.toLocaleString()} of ${totalRows.toLocaleString()} rows...`);
                                     parser.resume();
                                 })
                                 .catch(err => {
@@ -3296,7 +3335,7 @@ function importData(type, input) {
                                 const last = rowBuffer.splice(0);
                                 await table.bulkPut(last);
                                 written += last.length;
-                                showProgress(written, 'Finalising...');
+                                showProgress(written, totalRows, 'Finalising...');
                                 await yieldToUI();
                             }
                             resolve(written);
