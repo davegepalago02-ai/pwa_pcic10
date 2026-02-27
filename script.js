@@ -3356,17 +3356,33 @@ function importData(type, input) {
             // ── Step 2: Stream-parse + chunk-write ────────────────
             let rowBuffer = [];
             let written = 0;
+            let parsedCount = 0;
             let parseError = null;
 
             await new Promise((resolve, reject) => {
                 Papa.parse(input.files[0], {
                     header: true,
-                    skipEmptyLines: true,
+                    skipEmptyLines: "greedy", // greedy skips lines containing only commas/whitespace
 
                     // ─ step: called once per row (streaming) ─────────
                     // Only CHUNK_SIZE rows ever live in memory at once.
                     step: (result, parser) => {
-                        rowBuffer.push(normaliseRow(result.data));
+                        parsedCount++;
+                        const row = normaliseRow(result.data);
+
+                        // Identify primary key based on import type
+                        const pk = type === 'profiles' ? row.FarmersID : row.RECORDNUMBER;
+
+                        // Ignore trailing blank rows exported by Excel (e.g. rows of commas)
+                        if (!pk || String(pk).trim() === '') {
+                            // Update progress occasionally even if skipping
+                            if (parsedCount % 1000 === 0) {
+                                showProgress(parsedCount, totalRows, `Scanning — ${parsedCount.toLocaleString()} of ${totalRows.toLocaleString()} rows...`);
+                            }
+                            return;
+                        }
+
+                        rowBuffer.push(row);
 
                         if (rowBuffer.length >= CHUNK_SIZE) {
                             // Pause the parser while we flush to IndexedDB
@@ -3376,8 +3392,8 @@ function importData(type, input) {
                             table.bulkPut(chunk)
                                 .then(() => {
                                     written += chunk.length;
-                                    showProgress(written, totalRows,
-                                        `Writing — ${written.toLocaleString()} of ${totalRows.toLocaleString()} rows...`);
+                                    showProgress(parsedCount, totalRows,
+                                        `Writing — ${parsedCount.toLocaleString()} of ${totalRows.toLocaleString()} rows...`);
                                     parser.resume();
                                 })
                                 .catch(err => {
@@ -3398,8 +3414,8 @@ function importData(type, input) {
                                 await table.bulkPut(last);
                                 written += last.length;
                             }
-                            // Use actual written count as total so bar always matches
-                            showProgress(written, written, 'Done!');
+                            // Set bar exactly to 100% using parsedCount at the very end
+                            showProgress(totalRows, totalRows, 'Done!');
                             await yieldToUI();
                             resolve(written);
                         };
