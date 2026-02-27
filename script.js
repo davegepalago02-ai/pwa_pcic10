@@ -3356,33 +3356,17 @@ function importData(type, input) {
             // ── Step 2: Stream-parse + chunk-write ────────────────
             let rowBuffer = [];
             let written = 0;
-            let parsedCount = 0;
             let parseError = null;
 
             await new Promise((resolve, reject) => {
                 Papa.parse(input.files[0], {
                     header: true,
-                    skipEmptyLines: "greedy", // greedy skips lines containing only commas/whitespace
+                    skipEmptyLines: true,
 
                     // ─ step: called once per row (streaming) ─────────
                     // Only CHUNK_SIZE rows ever live in memory at once.
                     step: (result, parser) => {
-                        parsedCount++;
-                        const row = normaliseRow(result.data);
-
-                        // Identify primary key based on import type
-                        const pk = type === 'profiles' ? row.FarmersID : row.RECORDNUMBER;
-
-                        // Ignore trailing blank rows exported by Excel (e.g. rows of commas)
-                        if (!pk || String(pk).trim() === '') {
-                            // Update progress occasionally even if skipping
-                            if (parsedCount % 1000 === 0) {
-                                showProgress(parsedCount, totalRows, `Scanning — ${parsedCount.toLocaleString()} of ${totalRows.toLocaleString()} rows...`);
-                            }
-                            return;
-                        }
-
-                        rowBuffer.push(row);
+                        rowBuffer.push(normaliseRow(result.data));
 
                         if (rowBuffer.length >= CHUNK_SIZE) {
                             // Pause the parser while we flush to IndexedDB
@@ -3392,8 +3376,8 @@ function importData(type, input) {
                             table.bulkPut(chunk)
                                 .then(() => {
                                     written += chunk.length;
-                                    showProgress(parsedCount, totalRows,
-                                        `Writing — ${parsedCount.toLocaleString()} of ${totalRows.toLocaleString()} rows...`);
+                                    showProgress(written, totalRows,
+                                        `Writing — ${written.toLocaleString()} of ${totalRows.toLocaleString()} rows...`);
                                     parser.resume();
                                 })
                                 .catch(err => {
@@ -3413,10 +3397,9 @@ function importData(type, input) {
                                 const last = rowBuffer.splice(0);
                                 await table.bulkPut(last);
                                 written += last.length;
+                                showProgress(written, totalRows, 'Finalising...');
+                                await yieldToUI();
                             }
-                            // Set bar exactly to 100% using parsedCount at the very end
-                            showProgress(totalRows, totalRows, 'Done!');
-                            await yieldToUI();
                             resolve(written);
                         };
                         flushRemaining().catch(reject);
@@ -3427,27 +3410,22 @@ function importData(type, input) {
             });
 
             // ── Step 3: Success ───────────────────────────────────
-            // Query the actual DB count to account for deduplication (overwritten primary keys)
-            const finalCount = await table.count();
+            hideProgress();
 
-            // Show 100% complete state briefly before closing the modal
+            // Update progress bar to 100% on success
             if (progressBar) progressBar.style.width = '100%';
             if (progressPct) progressPct.innerText = '100%';
-            if (progressCount) progressCount.innerText = `${written.toLocaleString()} / ${written.toLocaleString()} rows processed`;
-            if (progressStatus) progressStatus.innerText = `✅ ${finalCount.toLocaleString()} unique records saved!`;
-            await yieldToUI();
-            await new Promise(r => setTimeout(r, 900)); // let user see 100%
-            hideProgress();
+            if (progressCount) progressCount.innerText = `${written.toLocaleString()} rows written`;
 
             if (typeof updateStatus === 'function') updateStatus();
 
             if (statusEl) {
-                statusEl.innerText = `✅ Imported ${finalCount.toLocaleString()} unique records`;
+                statusEl.innerText = `✅ Imported ${written.toLocaleString()} records`;
                 statusEl.style.color = 'green';
-                setTimeout(() => { statusEl.innerText = '' }, 4000); // Fixed comma typo from original
+                setTimeout(() => { statusEl.innerText = '', 4000 });
             }
 
-            alert(`✅ Import complete!\n${written.toLocaleString()} total rows processed.\n${finalCount.toLocaleString()} unique ${type} records saved in database.`);
+            alert(`✅ Import complete!\n${written.toLocaleString()} ${type} records imported.`);
 
         } catch (e) {
             hideProgress();
