@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PCIC R10 Digital App - Investor Pitch</title>
+    <title>PCIC R10 Digital App - Presentation</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reset.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
@@ -121,6 +121,28 @@
             overflow: hidden;
             margin-top: 20px;
         }
+
+        /* CTA Button */
+        .cta-button {
+            display: inline-block;
+            background: var(--pcic-green);
+            color: #fff !important;
+            padding: 12px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.8em;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 25px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(27, 94, 32, 0.6);
+            background: var(--pcic-light-green);
+        }
     </style>
 </head>
 
@@ -136,6 +158,11 @@
                     in the Field</h3>
                 <br>
                 <p style="font-size: 0.8em; color: #777;">A Progressive Web Application (PWA) Solution</p>
+
+                <a href="index.html" target="_blank" class="cta-button">
+                    <i class="fas fa-external-link-alt" style="margin-right: 8px;"></i> Open Live Application
+                </a>
+
                 <div style="margin-top: 40px; font-size: 0.6em; opacity: 0.7;">
                     <p>Use keyboard arrows (←/→) or swipe to navigate</p>
                 </div>
@@ -294,6 +321,10 @@
                 </div>
                 <h3 style="margin-top: 40px; font-size: 1.5em;">Thank You!</h3>
                 <p style="font-size: 0.8em; color: #555;">Let's transform agricultural insurance together.</p>
+
+                <a href="index.html" target="_blank" class="cta-button">
+                    <i class="fas fa-rocket" style="margin-right: 8px;"></i> Launch The App Now
+                </a>
             </section>
 
         </div>
