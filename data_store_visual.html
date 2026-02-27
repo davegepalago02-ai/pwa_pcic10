@@ -43,10 +43,56 @@
             max-width: 100%;
             height: auto;
         }
+
+        /* Print Specific CSS */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0.5cm;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .diagram-container {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+                overflow: hidden;
+            }
+
+            h1 {
+                text-align: center;
+                margin-top: 0;
+                font-size: 24px;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <div style="text-align: center; margin-bottom: 20px;" class="no-print">
+        <button onclick="window.print()" style="
+            background: #1b5e20; color: white; border: none; padding: 10px 20px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.2s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Save as PDF
+        </button>
+    </div>
+
     <h1>Data Storage & Reporting Flowchart</h1>
     <div class="diagram-container">
         <div class="mermaid">
