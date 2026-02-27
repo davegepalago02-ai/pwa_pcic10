@@ -3397,9 +3397,10 @@ function importData(type, input) {
                                 const last = rowBuffer.splice(0);
                                 await table.bulkPut(last);
                                 written += last.length;
-                                showProgress(written, totalRows, 'Finalising...');
-                                await yieldToUI();
                             }
+                            // Use actual written count as total so bar always matches
+                            showProgress(written, written, 'Done!');
+                            await yieldToUI();
                             resolve(written);
                         };
                         flushRemaining().catch(reject);
@@ -3410,12 +3411,14 @@ function importData(type, input) {
             });
 
             // ── Step 3: Success ───────────────────────────────────
-            hideProgress();
-
-            // Update progress bar to 100% on success
+            // Show 100% complete state briefly before closing the modal
             if (progressBar) progressBar.style.width = '100%';
             if (progressPct) progressPct.innerText = '100%';
-            if (progressCount) progressCount.innerText = `${written.toLocaleString()} rows written`;
+            if (progressCount) progressCount.innerText = `${written.toLocaleString()} / ${written.toLocaleString()} rows`;
+            if (progressStatus) progressStatus.innerText = `✅ ${written.toLocaleString()} records saved!`;
+            await yieldToUI();
+            await new Promise(r => setTimeout(r, 900)); // let user see 100%
+            hideProgress();
 
             if (typeof updateStatus === 'function') updateStatus();
 
