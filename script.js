@@ -3412,20 +3412,31 @@ function importData(type, input) {
             // ── Step 3: Success ───────────────────────────────────
             hideProgress();
 
+            let finalCountMsg = `${written.toLocaleString()} rows written`;
+            let finalStatusMsg = `✅ Imported ${written.toLocaleString()} records`;
+            let finalAlertMsg = `✅ Import complete!\n${written.toLocaleString()} ${type} records imported.`;
+
+            if (type === 'profiles') {
+                const finalDbCount = await table.count();
+                finalCountMsg = `${finalDbCount.toLocaleString()} unique records in DB`;
+                finalStatusMsg = `✅ Database now has ${finalDbCount.toLocaleString()} records`;
+                finalAlertMsg = `✅ Import complete!\nParsed ${written.toLocaleString()} rows from CSV.\nDatabase now contains ${finalDbCount.toLocaleString()} unique ${type} records.`;
+            }
+
             // Update progress bar to 100% on success
             if (progressBar) progressBar.style.width = '100%';
             if (progressPct) progressPct.innerText = '100%';
-            if (progressCount) progressCount.innerText = `${written.toLocaleString()} rows written`;
+            if (progressCount) progressCount.innerText = finalCountMsg;
 
             if (typeof updateStatus === 'function') updateStatus();
 
             if (statusEl) {
-                statusEl.innerText = `✅ Imported ${written.toLocaleString()} records`;
+                statusEl.innerText = finalStatusMsg;
                 statusEl.style.color = 'green';
                 setTimeout(() => { statusEl.innerText = '', 4000 });
             }
 
-            alert(`✅ Import complete!\n${written.toLocaleString()} ${type} records imported.`);
+            alert(finalAlertMsg);
 
         } catch (e) {
             hideProgress();
