@@ -39,7 +39,7 @@
         }
 
         .logo-img {
-            max-width: 180px;
+            height: 120px;
             margin-bottom: 20px !important;
             border: none !important;
             box-shadow: none !important;
@@ -146,15 +146,7 @@
             background: var(--pcic-light-green);
         }
 
-        /* Responsive Tweaks to prevent overflow */
-        .reveal .slides section {
-            padding: 0 !important;
-            height: 100%;
-            display: flex !important;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+        /* Removed flexbox override that was breaking Reveal's scaling engine */
     </style>
 </head>
 
@@ -165,7 +157,7 @@
             <!-- Slide 1: Title -->
             <section data-state="title-slide" data-transition="zoom">
                 <img src="asset/sidebar_logo.png" alt="PCIC Logo" class="logo-img">
-                <h1 style="font-size: 2.5em;">PCIC R10 Digital Application</h1>
+                <h1 style="font-size: 2em; margin-bottom: 15px;">PCIC R10 Digital Application</h1>
                 <h3 style="color: #555; font-size: 1.2em; font-weight: normal;">Revolutionizing Agricultural Insurance
                     in the Field</h3>
                 <br>
