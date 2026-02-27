@@ -3411,11 +3411,14 @@ function importData(type, input) {
             });
 
             // ── Step 3: Success ───────────────────────────────────
+            // Query the actual DB count to account for deduplication (overwritten primary keys)
+            const finalCount = await table.count();
+
             // Show 100% complete state briefly before closing the modal
             if (progressBar) progressBar.style.width = '100%';
             if (progressPct) progressPct.innerText = '100%';
-            if (progressCount) progressCount.innerText = `${written.toLocaleString()} / ${written.toLocaleString()} rows`;
-            if (progressStatus) progressStatus.innerText = `✅ ${written.toLocaleString()} records saved!`;
+            if (progressCount) progressCount.innerText = `${written.toLocaleString()} / ${written.toLocaleString()} rows processed`;
+            if (progressStatus) progressStatus.innerText = `✅ ${finalCount.toLocaleString()} unique records saved!`;
             await yieldToUI();
             await new Promise(r => setTimeout(r, 900)); // let user see 100%
             hideProgress();
@@ -3423,12 +3426,12 @@ function importData(type, input) {
             if (typeof updateStatus === 'function') updateStatus();
 
             if (statusEl) {
-                statusEl.innerText = `✅ Imported ${written.toLocaleString()} records`;
+                statusEl.innerText = `✅ Imported ${finalCount.toLocaleString()} unique records`;
                 statusEl.style.color = 'green';
-                setTimeout(() => { statusEl.innerText = '', 4000 });
+                setTimeout(() => { statusEl.innerText = '' }, 4000); // Fixed comma typo from original
             }
 
-            alert(`✅ Import complete!\n${written.toLocaleString()} ${type} records imported.`);
+            alert(`✅ Import complete!\n${written.toLocaleString()} total rows processed.\n${finalCount.toLocaleString()} unique ${type} records saved in database.`);
 
         } catch (e) {
             hideProgress();
