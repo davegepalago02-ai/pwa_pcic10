@@ -2176,7 +2176,7 @@ async function finalizeApplication(mode = 'complete') {
             Address: document.getElementById('banca_port').value,
             Sitio: document.getElementById('banca_port').value,
             FarmName: 'Boat: ' + (document.getElementById('banca_color').value || 'Unspecified'),
-            Color: document.getElementById('banca_color').value, // Explicitly save Color
+            BoatColor: document.getElementById('banca_color').value, // Fix: Use BoatColor explicitly
             // Specifics
             Usage: document.getElementById('banca_usage').value,
             Manning: document.getElementById('banca_crew').value,
