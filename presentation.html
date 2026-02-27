@@ -21,6 +21,8 @@
 
         .reveal {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            /* Scale down base font size */
         }
 
         .reveal h1,
@@ -143,6 +145,16 @@
             box-shadow: 0 6px 20px rgba(27, 94, 32, 0.6);
             background: var(--pcic-light-green);
         }
+
+        /* Responsive Tweaks to prevent overflow */
+        .reveal .slides section {
+            padding: 0 !important;
+            height: 100%;
+            display: flex !important;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 
@@ -163,7 +175,7 @@
                     <i class="fas fa-external-link-alt" style="margin-right: 8px;"></i> Open Live Application
                 </a>
 
-                <div style="margin-top: 40px; font-size: 0.6em; opacity: 0.7;">
+                <div style="margin-top: 20px; font-size: 0.6em; opacity: 0.7;">
                     <p>Use keyboard arrows (←/→) or swipe to navigate</p>
                 </div>
             </section>
@@ -240,10 +252,10 @@
 
             <!-- Slide 5: Database Acquisition -->
             <section data-transition="slide" data-background-color="#f5f5f5">
-                <h2>Database <span class="highlight-text">Acquisition</span></h2>
-                <p style="font-size: 0.9em; margin-bottom: 20px;">Seamless ingestion of existing 50,000+ farmer records
+                <h2 style="margin-bottom: 0;">Database <span class="highlight-text">Acquisition</span></h2>
+                <p style="font-size: 0.8em; margin-bottom: 10px;">Seamless ingestion of existing 50,000+ farmer records
                     via CSV.</p>
-                <div class="iframe-container" style="height: 60vh;">
+                <div class="iframe-container" style="height: 50vh; margin-top: 10px;">
                     <iframe src="https://drive.google.com/embeddedfolderview?id=1-MB4YOILX3tsbBvnAWESIKLnyPMr8BrV#grid"
                         width="100%" height="100%" style="border:none;" allowfullscreen></iframe>
                 </div>
@@ -251,26 +263,33 @@
 
             <!-- Slide 6: System Architecture -->
             <section data-transition="convex">
-                <h2>Visual <span class="highlight-text">Architecture</span></h2>
-                <div style="display: flex; gap: 20px;">
+                <h2 style="margin-bottom: 0;">Visual <span class="highlight-text">Architecture</span></h2>
+                <div style="display: flex; gap: 20px; align-items: stretch; margin-top: 10px;">
                     <div style="width: 50%;">
-                        <div class="glass-card" style="padding: 15px; cursor: pointer;"
+                        <div class="glass-card"
+                            style="padding: 15px; cursor: pointer; height: 100%; box-sizing: border-box;"
                             onclick="window.open('workflow_visual.html', '_blank')">
-                            <h4>Workflow Diagram</h4>
-                            <p style="font-size: 0.7em;">User navigation and execution flow.</p>
-                            <img src="asset/logo.png" style="height: 100px; opacity: 0.5;" alt="Workflow Thumbnail">
-                            <p style="font-size: 0.6em; color: var(--pcic-green); margin-top: 10px;">Click to view full
+                            <h4 style="margin: 0 0 5px 0;">Workflow Diagram</h4>
+                            <p style="font-size: 0.6em; margin-bottom: 10px;">User navigation and execution flow.</p>
+                            <img src="asset/logo.png"
+                                style="height: 80px; opacity: 0.5; margin: 0 auto; display: block;"
+                                alt="Workflow Thumbnail">
+                            <p style="font-size: 0.6em; color: var(--pcic-green); margin-top: 10px; margin-bottom: 0;">
+                                Click to view full
                                 diagram ↗</p>
                         </div>
                     </div>
                     <div style="width: 50%;">
-                        <div class="glass-card" style="padding: 15px; cursor: pointer;"
+                        <div class="glass-card"
+                            style="padding: 15px; cursor: pointer; height: 100%; box-sizing: border-box;"
                             onclick="window.open('logic_flow_visual.html', '_blank')">
-                            <h4>Logic Execution</h4>
-                            <p style="font-size: 0.7em;">Data validation and calculation engine.</p>
-                            <img src="asset/sidebar_logo.png" style="height: 100px; opacity: 0.5;"
+                            <h4 style="margin: 0 0 5px 0;">Logic Execution</h4>
+                            <p style="font-size: 0.6em; margin-bottom: 10px;">Data validation & calculations.</p>
+                            <img src="asset/sidebar_logo.png"
+                                style="height: 80px; opacity: 0.5; margin: 0 auto; display: block;"
                                 alt="Logic Thumbnail">
-                            <p style="font-size: 0.6em; color: var(--pcic-green); margin-top: 10px;">Click to view full
+                            <p style="font-size: 0.6em; color: var(--pcic-green); margin-top: 10px; margin-bottom: 0;">
+                                Click to view full
                                 diagram ↗</p>
                         </div>
                     </div>
@@ -279,50 +298,56 @@
 
             <!-- Slide 7: Business Impact -->
             <section data-transition="zoom" data-background-color="#1b5e20" style="color: white;">
-                <h2 style="color: var(--pcic-gold);">Traction & Impact</h2>
-                <div class="feature-grid">
+                <h2 style="color: var(--pcic-gold); margin-bottom: 10px;">Traction & Impact</h2>
+                <div class="feature-grid" style="margin-top: 10px; gap: 20px;">
                     <div class="feature-box"
-                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
-                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">80%</h1>
-                        <p style="color: #ddd;">Reduction in processing time per application</p>
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white; padding: 15px;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 2.5em;">80%</h1>
+                        <p style="color: #ddd; font-size: 0.7em;">Reduction in processing time per application</p>
                     </div>
                     <div class="feature-box"
-                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
-                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">0g</h1>
-                        <p style="color: #ddd;">Paper waste generated during field underwriting</p>
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white; padding: 15px;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 2.5em;">0g</h1>
+                        <p style="color: #ddd; font-size: 0.7em;">Paper waste generated during field underwriting</p>
                     </div>
                     <div class="feature-box"
-                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
-                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">100%</h1>
-                        <p style="color: #ddd;">Offline operational reliability out in the field</p>
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white; padding: 15px;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 2.5em;">100%</h1>
+                        <p style="color: #ddd; font-size: 0.7em;">Offline operational reliability out in the field</p>
                     </div>
                     <div class="feature-box"
-                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
-                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">Zero</h1>
-                        <p style="color: #ddd;">Calculation errors on premium coverage</p>
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white; padding: 15px;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 2.5em;">Zero</h1>
+                        <p style="color: #ddd; font-size: 0.7em;">Calculation errors on premium coverage</p>
                     </div>
                 </div>
             </section>
 
             <!-- Slide 8: Future Roadmap -->
             <section data-transition="fade">
-                <h2>The Road Ahead</h2>
-                <div class="glass-card">
-                    <ul class="custom-list" style="font-size: 0.9em; text-align: left;">
-                        <li><strong>Cloud Synchronization:</strong> Seamless two-way sync with centralized regional AWS
+                <h2 style="margin-bottom: 0;">The Road Ahead</h2>
+                <div class="glass-card" style="margin-top: 10px; padding: 20px;">
+                    <ul class="custom-list" style="font-size: 0.8em; text-align: left; margin: 0;">
+                        <li style="margin-bottom: 10px;"><strong>Cloud Synchronization:</strong> Seamless two-way sync
+                            with centralized regional AWS
                             servers.</li>
-                        <li><strong>Advanced Analytics:</strong> Native dashboard for agricultural trends and damage
+                        <li style="margin-bottom: 10px;"><strong>Advanced Analytics:</strong> Native dashboard for
+                            agricultural trends and damage
                             predictions.</li>
-                        <li><strong>AI Integrations:</strong> AI-powered photo analysis for instant crop damage
+                        <li style="margin-bottom: 10px;"><strong>AI Integrations:</strong> AI-powered photo analysis for
+                            instant crop damage
                             assessment.</li>
-                        <li><strong>Expansion:</strong> Scaling the architecture nationwide to other PCIC Regional
+                        <li style="margin-bottom: 0;"><strong>Expansion:</strong> Scaling the architecture nationwide to
+                            other PCIC Regional
                             Offices.</li>
                     </ul>
                 </div>
-                <h3 style="margin-top: 40px; font-size: 1.5em;">Thank You!</h3>
-                <p style="font-size: 0.8em; color: #555;">Let's transform agricultural insurance together.</p>
+                <h3 style="margin-top: 20px; font-size: 1.3em; margin-bottom: 0;">Thank You!</h3>
+                <p style="font-size: 0.7em; color: #555; margin-top: 5px;">Let's transform agricultural insurance
+                    together.</p>
 
-                <a href="https://davegepalago02-ai.github.io/pwa_pcic10/" target="_blank" class="cta-button">
+                <a href="https://davegepalago02-ai.github.io/pwa_pcic10/" target="_blank" class="cta-button"
+                    style="margin-top: 15px;">
                     <i class="fas fa-rocket" style="margin-right: 8px;"></i> Launch The App Now
                 </a>
             </section>
@@ -337,7 +362,10 @@
             controls: true,
             progress: true,
             center: true,
-            transition: 'slide'
+            transition: 'slide',
+            margin: 0.1,    // Increase margin to ensure it fits within smaller windows
+            minScale: 0.2,
+            maxScale: 1.5
         });
     </script>
 </body>
