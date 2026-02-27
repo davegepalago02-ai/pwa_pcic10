@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PCIC R10 Digital App - Investor Pitch</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/white.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* PCIC Brand Styling & Customizations */
+        :root {
+            --pcic-green: #1b5e20;
+            --pcic-light-green: #4caf50;
+            --pcic-gold: #fdd835;
+        }
+
+        .reveal {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .reveal h1,
+        .reveal h2,
+        .reveal h3 {
+            color: var(--pcic-green);
+            text-transform: none;
+            font-weight: 700;
+        }
+
+        /* Title Slide Customization */
+        .title-slide {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+
+        .logo-img {
+            max-width: 180px;
+            margin-bottom: 20px !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+
+        .highlight-text {
+            color: var(--pcic-light-green);
+            font-weight: bold;
+        }
+
+        /* Glassmorphism Card Style for content */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            margin: 20px auto;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .feature-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--pcic-green);
+        }
+
+        .feature-box i {
+            color: var(--pcic-light-green);
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .feature-box h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .feature-box p {
+            font-size: 0.8em;
+            color: #555;
+            margin: 0;
+        }
+
+        ul.custom-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul.custom-list li {
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 40px;
+        }
+
+        ul.custom-list li::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--pcic-light-green);
+        }
+
+        /* Iframe container */
+        .iframe-container {
+            width: 100%;
+            height: 500px;
+            border: 2px solid var(--pcic-green);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Slide 1: Title -->
+            <section data-state="title-slide" data-transition="zoom">
+                <img src="asset/sidebar_logo.png" alt="PCIC Logo" class="logo-img">
+                <h1 style="font-size: 2.5em;">PCIC R10 Digital Application</h1>
+                <h3 style="color: #555; font-size: 1.2em; font-weight: normal;">Revolutionizing Agricultural Insurance
+                    in the Field</h3>
+                <br>
+                <p style="font-size: 0.8em; color: #777;">A Progressive Web Application (PWA) Solution</p>
+                <div style="margin-top: 40px; font-size: 0.6em; opacity: 0.7;">
+                    <p>Use keyboard arrows (←/→) or swipe to navigate</p>
+                </div>
+            </section>
+
+            <!-- Slide 2: The Problem -->
+            <section data-transition="slide">
+                <h2>The Current Challenge</h2>
+                <div class="glass-card">
+                    <ul class="custom-list" style="font-size: 0.9em; text-align: left;">
+                        <li><strong>Connectivity Barriers:</strong> Remote farms often lack reliable internet access,
+                            making cloud-only solutions impossible.</li>
+                        <li><strong>Manual Paperwork:</strong> Hand-written forms result in redundant data entry,
+                            illegible text, and physical storage costs.</li>
+                        <li><strong>Processing Delays:</strong> Transporting physical papers back to the office delays
+                            encoding, policy issuance, and claims.</li>
+                        <li><strong>Calculation Errors:</strong> Manual computation of hectares, rates, and livestock
+                            coverage leads to inconsistencies.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 3: The Solution -->
+            <section data-transition="convex">
+                <h2>The <span class="highlight-text">Solution</span></h2>
+                <p>An intelligent, <strong>Offline-First</strong> web application that travels with the underwriter.</p>
+
+                <div style="display: flex; justify-content: space-around; margin-top: 40px;">
+                    <div style="width: 30%; text-align: center;">
+                        <i class="fas fa-wifi"
+                            style="font-size: 3em; color: var(--pcic-green); opacity:0.5; text-decoration:line-through;"></i>
+                        <h4 style="margin-top: 15px;">100% Offline</h4>
+                        <p style="font-size: 0.7em;">Works anywhere natively via Service Workers.</p>
+                    </div>
+                    <div style="width: 30%; text-align: center;">
+                        <i class="fas fa-database" style="font-size: 3em; color: var(--pcic-green);"></i>
+                        <h4 style="margin-top: 15px;">Local DB</h4>
+                        <p style="font-size: 0.7em;">Stores 50,000+ farmer records locally.</p>
+                    </div>
+                    <div style="width: 30%; text-align: center;">
+                        <i class="fas fa-file-pdf" style="font-size: 3em; color: var(--pcic-green);"></i>
+                        <h4 style="margin-top: 15px;">Auto PDF</h4>
+                        <p style="font-size: 0.7em;">Generates official forms directly on-device.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: Key Features -->
+            <section data-transition="fade">
+                <h2>Core Capabilities</h2>
+                <div class="feature-grid">
+                    <div class="feature-box">
+                        <i class="fas fa-pen-nib"></i>
+                        <h4>Digital E-Signatures</h4>
+                        <p>Capture legally binding signatures for farmers and guardians dynamically on a touch screen.
+                        </p>
+                    </div>
+                    <div class="feature-box">
+                        <i class="fas fa-calculator"></i>
+                        <h4>Dynamic Calculations</h4>
+                        <p>Auto-computes premium rates and coverage across Crop, Livestock, Banca, and ADSS.</p>
+                    </div>
+                    <div class="feature-box">
+                        <i class="fas fa-users-viewfinder"></i>
+                        <h4>Fast Smart Search</h4>
+                        <p>Instantly fetch existing farmer profiles without waiting for server responses.</p>
+                    </div>
+                    <div class="feature-box">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>Batch Export & Reports</h4>
+                        <p>Generates end-of-day Excel/CSV summaries and consolidated PDFs for seamless sync.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Database Acquisition -->
+            <section data-transition="slide" data-background-color="#f5f5f5">
+                <h2>Database <span class="highlight-text">Acquisition</span></h2>
+                <p style="font-size: 0.9em; margin-bottom: 20px;">Seamless ingestion of existing 50,000+ farmer records
+                    via CSV.</p>
+                <div class="iframe-container" style="height: 60vh;">
+                    <iframe src="asset/documentation/PCIC 10 Digital Insurance Application Documentation .pdf#zoom=FitH"
+                        width="100%" height="100%" style="border:none;"></iframe>
+                </div>
+            </section>
+
+            <!-- Slide 6: System Architecture -->
+            <section data-transition="convex">
+                <h2>Visual <span class="highlight-text">Architecture</span></h2>
+                <div style="display: flex; gap: 20px;">
+                    <div style="width: 50%;">
+                        <div class="glass-card" style="padding: 15px; cursor: pointer;"
+                            onclick="window.open('workflow_visual.html', '_blank')">
+                            <h4>Workflow Diagram</h4>
+                            <p style="font-size: 0.7em;">User navigation and execution flow.</p>
+                            <img src="asset/logo.png" style="height: 100px; opacity: 0.5;" alt="Workflow Thumbnail">
+                            <p style="font-size: 0.6em; color: var(--pcic-green); margin-top: 10px;">Click to view full
+                                diagram ↗</p>
+                        </div>
+                    </div>
+                    <div style="width: 50%;">
+                        <div class="glass-card" style="padding: 15px; cursor: pointer;"
+                            onclick="window.open('logic_flow_visual.html', '_blank')">
+                            <h4>Logic Execution</h4>
+                            <p style="font-size: 0.7em;">Data validation and calculation engine.</p>
+                            <img src="asset/sidebar_logo.png" style="height: 100px; opacity: 0.5;"
+                                alt="Logic Thumbnail">
+                            <p style="font-size: 0.6em; color: var(--pcic-green); margin-top: 10px;">Click to view full
+                                diagram ↗</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 7: Business Impact -->
+            <section data-transition="zoom" data-background-color="#1b5e20" style="color: white;">
+                <h2 style="color: var(--pcic-gold);">Traction & Impact</h2>
+                <div class="feature-grid">
+                    <div class="feature-box"
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">80%</h1>
+                        <p style="color: #ddd;">Reduction in processing time per application</p>
+                    </div>
+                    <div class="feature-box"
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">0g</h1>
+                        <p style="color: #ddd;">Paper waste generated during field underwriting</p>
+                    </div>
+                    <div class="feature-box"
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">100%</h1>
+                        <p style="color: #ddd;">Offline operational reliability out in the field</p>
+                    </div>
+                    <div class="feature-box"
+                        style="background: rgba(255,255,255,0.1); border-left: 5px solid var(--pcic-gold); color: white;">
+                        <h1 style="color: var(--pcic-gold); margin: 0; font-size: 3em;">Zero</h1>
+                        <p style="color: #ddd;">Calculation errors on premium coverage</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Future Roadmap -->
+            <section data-transition="fade">
+                <h2>The Road Ahead</h2>
+                <div class="glass-card">
+                    <ul class="custom-list" style="font-size: 0.9em; text-align: left;">
+                        <li><strong>Cloud Synchronization:</strong> Seamless two-way sync with centralized regional AWS
+                            servers.</li>
+                        <li><strong>Advanced Analytics:</strong> Native dashboard for agricultural trends and damage
+                            predictions.</li>
+                        <li><strong>AI Integrations:</strong> AI-powered photo analysis for instant crop damage
+                            assessment.</li>
+                        <li><strong>Expansion:</strong> Scaling the architecture nationwide to other PCIC Regional
+                            Offices.</li>
+                    </ul>
+                </div>
+                <h3 style="margin-top: 40px; font-size: 1.5em;">Thank You!</h3>
+                <p style="font-size: 0.8em; color: #555;">Let's transform agricultural insurance together.</p>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide'
+        });
+    </script>
+</body>
+
+</html>
