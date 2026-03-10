@@ -3,8 +3,8 @@
     "short_name": "PCIC Ro10",
     "description": "Digital application form for PCIC Insurance.",
     "start_url": "index.html",
-    "display": "standalone",
-    "background_color": "#ffffff",
+    "display": "fullscreen",
+    "background_color": "#1b5e20",
     "theme_color": "#1b5e20",
     "icons": [
         {
