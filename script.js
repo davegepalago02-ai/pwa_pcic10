@@ -534,7 +534,7 @@ function showView(v) {
     // Conditional Dashboard Visibility
     const globalDash = document.getElementById('global-dashboard');
     if (globalDash) {
-        globalDash.style.setProperty('display', (v === 'welcome') ? 'none' : 'flex', 'important');
+        globalDash.style.setProperty('display', (v === 'welcome' || v === 'preprocessing') ? 'none' : 'flex', 'important');
     }
 
     document.querySelectorAll('.content-area').forEach(e => e.style.display = 'none');
@@ -558,7 +558,8 @@ function showView(v) {
         'summary': 'Batch Summary',
         'settings': 'App Settings',
         'database': 'Application Database',
-        'about': 'Help & About'
+        'about': 'Help & About',
+        'preprocessing': '🌾 Preprocessing Hub'
     };
     const viewTitle = document.getElementById('view-title');
     if (viewTitle) viewTitle.innerText = titleMap[v] || v;
@@ -616,7 +617,7 @@ function showView(v) {
     console.log('=== showView completed for:', v);
 
     // DIAGNOSTIC LOGGING
-    ['view-enrollment', 'view-enrollment-form', 'view-about', 'view-summary', 'view-settings'].forEach(id => {
+    ['view-enrollment', 'view-enrollment-form', 'view-about', 'view-summary', 'view-settings', 'view-preprocessing'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             const style = window.getComputedStyle(el);
@@ -647,7 +648,7 @@ function startBlankEnrollment() {
 
     // Initialize a blank farmer object with the pre-generated ID
     currentFarmer = {
-        FarmersID: autoFarmerID, RSBSAID: "", RSBSANO: "",
+        FarmersID: autoFarmerID, RSBSAID: "", RSBSANO: "", NCFRSID: "",
         LastName: "", FirstName: "", MiddlName: "", ExtName: "",
         Birthdate: "", Sex: "", CivilStatus: "",
         Province: "", Municipality: "", Barangay: "", Street: "",
@@ -670,7 +671,7 @@ function startBlankEnrollment() {
 // New: Dedicated function to clear all enrollment fields for a fresh start
 function resetEnrollmentFields() {
     const fieldsToClear = [
-        'f_id', 'f_rsbsa', 'f_extname', 'f_lname', 'f_fname', 'f_midname',
+        'f_id', 'f_rsbsa', 'f_ncfrs', 'f_extname', 'f_lname', 'f_fname', 'f_midname',
         'f_sex', 'f_civil', 'f_bday', 'f_prov_farmer', 'f_mun_farmer', 'f_brgy_farmer', 'f_st_farmer',
         'f_bene', 'f_bene_rel', 'f_bene_bday', 'f_mobile', 'f_spouse', 'f_sector', 'f_guardian', 'f_guardian_rel', 'f_guardian_bday',
         'f_acc', 'f_mop', 'f_north', 'f_south', 'f_east', 'f_west', 'f_area', 'f_farmid',
@@ -773,6 +774,7 @@ function saveEnrollmentState() {
     const fieldMap = {
         'f_id': 'FarmersID',
         'f_rsbsa': 'RSBSAID',
+        'f_ncfrs': 'NCFRSID',
         'f_lname': 'LastName',
         'f_fname': 'FirstName',
         'f_midname': 'MiddlName',
@@ -1109,6 +1111,18 @@ async function calculateTotalCover() {
     document.getElementById('f_amount_cover').value = total.toFixed(2);
 }
 
+function syncPlantingDate() {
+    const pType = document.getElementById('f_top');
+    const dSow = document.getElementById('sow_date');
+    const dPlant = document.getElementById('f_plant');
+
+    if (pType && dSow && dPlant) {
+        if (pType.value === 'Direct Seeding' && dSow.value) {
+            dPlant.value = dSow.value;
+        }
+    }
+}
+
 function handleCropUnified() {
     const cropName = document.getElementById('f_crop_unified').value;
     document.getElementById('hidden_crop_type').value = cropName; // Sync for any legacy submit logic
@@ -1201,6 +1215,13 @@ function refreshAnimalClassifications() {
 
 function addAnimalRow() {
     const tbody = document.getElementById('animal_list_body');
+
+    // ENFORCING ONE ROW ONLY (User Request)
+    if (tbody.getElementsByTagName('tr').length >= 1) {
+        alert("Only one animal entry is allowed per application currently.");
+        return;
+    }
+
     const rowId = 'row_' + new Date().getTime();
     const tr = document.createElement('tr');
     tr.id = rowId;
@@ -1920,6 +1941,7 @@ async function displayEnrollmentFormUI(history) {
     if (idEl) idEl.readOnly = !isWalkIn;
 
     safeSet('f_rsbsa', cf.RSBSAID || cf.RSBSANO);
+    safeSet('f_ncfrs', cf.NCFRSID);
     safeSet('f_extname', cf.ExtName);
     safeSet('f_lname', cf.LastName);
     safeSet('f_fname', cf.FirstName);
@@ -2023,6 +2045,104 @@ function closeModal() { document.getElementById('modal-overlay').style.display =
 // --- Finalization ---
 
 async function finalizeApplication(mode = 'complete') {
+    const line = document.getElementById('f_insurance_line').value || 'Crop';
+
+    // --- FORM VALIDATION ENGINE START ---
+    const requiredFields = {
+        'FarmDetails': [
+            { id: 'f_north', name: 'North Boundary (Farm Details)' },
+            { id: 'f_south', name: 'South Boundary (Farm Details)' },
+            { id: 'f_east', name: 'East Boundary (Farm Details)' },
+            { id: 'f_west', name: 'West Boundary (Farm Details)' },
+            { id: 'f_farm_prov', name: 'Farm Province' },
+            { id: 'f_farm_mun', name: 'Farm Municipality' },
+            { id: 'f_farm_bgy', name: 'Farm Barangay' },
+            { id: 'f_farm_purok', name: 'Farm Purok/Sitio' },
+            { id: 'f_area', name: 'Area (ha)' }
+        ],
+        'Crop': [
+            { id: 'f_crop_unified', name: 'Crop Type' },
+            { id: 'f_top', name: 'Planting Type' },
+            { id: 'f_variety', name: 'Variety' },
+            { id: 'sow_date', name: 'Date Sowing' },
+            { id: 'f_plant', name: 'Date Planting' }
+        ],
+        'Livestock': [
+            { id: 'live_prov', name: 'Province (Livestock)' },
+            { id: 'live_mun', name: 'Municipality (Livestock)' },
+            { id: 'live_bgy', name: 'Barangay (Livestock)' },
+            { id: 'live_sitio', name: 'Sitio/Purok (Livestock)' },
+            { id: 'live_animal_type', name: 'Animal Type' }
+        ],
+        'Banca': [
+            { id: 'banca_port', name: 'Home Port / Fishing Area' },
+            { id: 'banca_usage', name: 'Usage' },
+            { id: 'banca_crew', name: 'Tonnage' },
+            { id: 'banca_material', name: 'Material' },
+            { id: 'banca_type', name: 'Type of Boat' },
+            { id: 'banca_hp', name: 'Motor No' },
+            { id: 'banca_chassis', name: 'Chassis No' },
+            { id: 'banca_age', name: 'Age of Boat' },
+            { id: 'banca_color', name: 'Boat Color' },
+            { id: 'banca_length', name: 'Length (m)' },
+            { id: 'banca_width', name: 'Width (m)' },
+            { id: 'banca_depth', name: 'Depth (m)' },
+            { id: 'banca_cover', name: 'Amount Cover (Banca)' },
+            { id: 'banca_period_from', name: 'Period From' },
+            { id: 'banca_period_to', name: 'Period To' },
+            { id: 'banca_bene_primary', name: 'Primary Beneficiary (Banca)' },
+            { id: 'banca_bene_rel', name: 'Beneficiary Relationship (Banca)' }
+        ],
+        'ADSS': [
+            { id: 'adss_occupation', name: 'Occupation' },
+            { id: 'adss_work_addr', name: 'Work Address' },
+            { id: 'adss_premium', name: 'Premium Amount' },
+            { id: 'adss_ben1_name', name: 'Primary Beneficiary Name' },
+            { id: 'adss_ben1_rel', name: 'Primary Beneficiary Relationship' },
+            { id: 'adss_ben1_bday', name: 'Primary Beneficiary Birthdate' }
+        ]
+    };
+
+    let allMissingFields = [];
+    let firstElementToFocus = null;
+
+    // Helper to check fields
+    const checkFields = (fields) => {
+        for (let field of fields) {
+            const el = document.getElementById(field.id);
+            if (!el || el.value.trim() === '') {
+                allMissingFields.push(field.name);
+                if (!firstElementToFocus && el) firstElementToFocus = el;
+            }
+        }
+    };
+
+    // 1. Validate Farm Details (Only Required for Crop)
+    if (line === 'Crop') {
+        checkFields(requiredFields['FarmDetails']);
+    }
+
+    // 2. Validate Specific Insurance Line
+    if (requiredFields[line]) {
+        checkFields(requiredFields[line]);
+
+        // Special Checks
+        if (line === 'Livestock') {
+            const tbody = document.getElementById('animal_list_body');
+            const rowCount = tbody ? tbody.getElementsByTagName('tr').length : 0;
+            if (rowCount !== 1) { // User requested STRICTLY ONE row limit
+                allMissingFields.push(`Livestock requires exactly 1 animal row (Currently has ${rowCount})`);
+            }
+        }
+    }
+
+    if (allMissingFields.length > 0) {
+        alert("Please fill in the following required fields:\n\n- " + allMissingFields.join('\n- '));
+        if (firstElementToFocus) firstElementToFocus.focus();
+        return; // Halt submission
+    }
+    // --- FORM VALIDATION ENGINE END ---
+
     if (signaturePad.isEmpty()) return alert("Signature required.");
     if (!document.getElementById('consent_certify').checked) return alert("Please certify that the information provided is correct.");
     if (!document.getElementById('consent_privacy').checked) return alert("Please agree to the Data Privacy Consent terms.");
@@ -2052,8 +2172,6 @@ async function finalizeApplication(mode = 'complete') {
         currentFarmer.LastName = document.getElementById('f_lname').value;
         currentFarmer.FirstName = document.getElementById('f_fname').value;
     }
-
-    const line = document.getElementById('f_insurance_line').value || 'Crop';
 
     // Auto-generate Farm ID if blank for walk-ins
     let farmID = document.getElementById('f_farmid') ? document.getElementById('f_farmid').value : '';
@@ -2092,6 +2210,7 @@ async function finalizeApplication(mode = 'complete') {
         FarmersID: currentFarmer.FarmersID,
         FarmID: farmID,
         RSBSAID: document.getElementById('f_rsbsa') ? document.getElementById('f_rsbsa').value : '',
+        NCFRSID: document.getElementById('f_ncfrs') ? document.getElementById('f_ncfrs').value : '',
         LastName: document.getElementById('f_lname').value,
         FirstName: document.getElementById('f_fname').value,
         MiddlName: document.getElementById('f_midname').value,
@@ -2242,14 +2361,14 @@ async function finalizeApplication(mode = 'complete') {
             Sector: document.getElementById('f_sector').value,
             ExtName: document.getElementById('f_extname') ? document.getElementById('f_extname').value : '',
             RSBSAID: document.getElementById('f_rsbsa').value,
+            NCFRSID: document.getElementById('f_ncfrs') ? document.getElementById('f_ncfrs').value : '',
             FarmID: document.getElementById('f_farmid').value,
             Georef: document.getElementById('f_georef').value,
             FarmName: document.getElementById('f_farm_name_hidden').value,
             ProvFarm: document.getElementById('f_farm_prov').value,
             MunFarm: document.getElementById('f_farm_mun').value,
             BrgyFarm: document.getElementById('f_farm_bgy').value,
-            FarmPurok: document.getElementById('f_farm_purok').value,
-            StFarm: document.getElementById('f_st_farm').value,
+            StFarm: document.getElementById('f_farm_purok').value,
             North: document.getElementById('f_north').value,
             South: document.getElementById('f_south').value,
             East: document.getElementById('f_east').value,
@@ -2310,9 +2429,9 @@ async function finalizeApplication(mode = 'complete') {
     setTimeout(() => {
         if (mode === 'next_farm') {
             // PARTIAL RESET: Keep Farmer Info, Clear Farm/Policy for next entry
-            alert("Application Saved! Please enter details for the NEXT farm.");
+            alert("Application Saved! Please enter details for the NEXT policy.");
 
-            // Clear Steps 2, 3, 4
+            // 1. Clear Farm Location Details
             document.getElementById('f_farm_select').value = ""; // Reset selector
             document.getElementById('f_north').value = '';
             document.getElementById('f_south').value = '';
@@ -2321,12 +2440,12 @@ async function finalizeApplication(mode = 'complete') {
             document.getElementById('f_farm_bgy').value = '';
             document.getElementById('f_farm_mun').value = '';
             document.getElementById('f_farm_prov').value = '';
-            document.getElementById('f_farmid').value = '';
+            document.getElementById('f_farm_purok').value = '';
+            document.getElementById('f_st_farm').value = '';
             document.getElementById('f_area').value = '';
             document.getElementById('f_georef').value = '';
 
-            // Clear Policy (reuse clear logic if possible, or manual)
-            // Clear Policy (reuse clear logic if possible, or manual)
+            // 2. Clear Crop Details
             document.getElementById('f_crop_unified').value = '';
             handleCropUnified();
             document.getElementById('f_top').selectedIndex = 0;
@@ -2334,13 +2453,56 @@ async function finalizeApplication(mode = 'complete') {
             document.getElementById('f_amount_cover').value = '';
             if (document.getElementById('sow_date')) document.getElementById('sow_date').value = '';
             document.getElementById('f_plant').value = '';
-            // f_acc is now global to the farmer, do not clear for "SAME FARMER" mode
             document.getElementById('f_trees').value = ''; // Clear trees if HVC
 
+            // 3. Clear Livestock Details
+            document.getElementById('live_prov').value = '';
+            document.getElementById('live_mun').value = '';
+            document.getElementById('live_bgy').value = '';
+            document.getElementById('live_sitio').value = '';
+            document.getElementById('live_animal_type').value = '';
+            document.getElementById('animal_list_body').innerHTML = ''; // Wipe animal table
+
+            // 4. Clear Banca Details
+            document.getElementById('banca_port').value = '';
+            document.getElementById('banca_usage').value = '';
+            document.getElementById('banca_crew').value = ''; // Serves as tonnage
+            document.getElementById('banca_material').value = '';
+            document.getElementById('banca_type').value = '';
+            document.getElementById('banca_hp').value = '';
+            if (document.getElementById('banca_chassis')) document.getElementById('banca_chassis').value = '';
+            if (document.getElementById('banca_age')) document.getElementById('banca_age').value = '';
+            if (document.getElementById('banca_color')) document.getElementById('banca_color').value = '';
+            if (document.getElementById('banca_length')) document.getElementById('banca_length').value = '';
+            if (document.getElementById('banca_width')) document.getElementById('banca_width').value = '';
+            if (document.getElementById('banca_depth')) document.getElementById('banca_depth').value = '';
+            if (document.getElementById('banca_others')) document.getElementById('banca_others').value = '';
+
+            // 5. Clear ADSS Details
+            document.getElementById('adss_occupation').value = '';
+            document.getElementById('adss_premium').value = '';
+
+            // Hide the alternative line containers
             document.getElementById('adss-details').style.display = 'none';
             document.getElementById('banca-details').style.display = 'none';
             document.getElementById('livestock-details').style.display = 'none';
-            signaturePad.clear();
+
+            // 6. Regenerate Farm ID explicitly for the new application
+            const now = new Date();
+            const timestamp = now.getFullYear() +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                String(now.getDate()).padStart(2, '0') + '-' +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0') +
+                String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('f_farmid').value = `F-${getDeviceID()}-${timestamp}`;
+
+            // Prevent caching from reverting forms
+            localStorage.removeItem('pcic_last_step');
+
+            // Clear signatures
+            if (signaturePad) signaturePad.clear();
+            if (guardianSignaturePad) guardianSignaturePad.clear();
 
             // Navigate to Step 2 (Policy Details)
             goToStep('policy-details');
@@ -2361,7 +2523,8 @@ async function finalizeApplication(mode = 'complete') {
             document.getElementById('adss-details').style.display = 'none';
             document.getElementById('banca-details').style.display = 'none';
             document.getElementById('livestock-details').style.display = 'none';
-            signaturePad.clear();
+            if (signaturePad) signaturePad.clear();
+            if (guardianSignaturePad) guardianSignaturePad.clear();
             refreshLog();
         }
     }, 500);
@@ -3841,7 +4004,8 @@ async function initCalibration() {
     } catch (err) {
         console.error("Failed to load calibration:", err);
     }
-    document.getElementById('calBgImage').src = bgData;
+    const calBgImage = document.getElementById('calBgImage');
+    if (calBgImage) calBgImage.src = bgData;
 }
 
 async function toggleCalibration() {
@@ -4152,6 +4316,8 @@ const locationData = {
 // Function to populate province autocomplete
 function populateProvinceList() {
     const provinceList = document.getElementById('province-list');
+    if (!provinceList) return; // Prevent crash if not in main DOM (e.g. Preprocessing Hub)
+
     provinceList.innerHTML = '';
 
     Object.keys(locationData).sort().forEach(province => {

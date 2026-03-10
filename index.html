@@ -32,6 +32,7 @@
     <script src="lib/jspdf.js"></script>
     <script src="lib/jspdf-autotable.js"></script>
     <script src="lib/pdf-lib.js"></script>
+    <script src="lib/idb-keyval.js"></script>
     <script src="farm_selector_functions.js"></script>
     <script src="db_manager.js"></script>
     <script src="csv_handler.js"></script>
@@ -96,6 +97,17 @@
                         d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
                 Settings
+            </button>
+            <button class="nav-btn" id="nav-preprocessing" onclick="showView('preprocessing')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="lucide lucide-file-spreadsheet"
+                    stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                    <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z" />
+                    <path d="M8 11h8" />
+                    <path d="M8 15h8" />
+                    <path d="M11 11v9" />
+                </svg>
+                Preprocessing Hub
             </button>
             <button class="nav-btn" id="nav-about" onclick="showView('about')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
@@ -434,19 +446,26 @@
                         </div>
                     </div>
 
-                    <div class="grid-5">
-
-                        <div class="input-group"><label>Farmer ID</label><input type="text" id="f_id" readonly>
-                        </div>
+                    <!-- ROW 1: ID Numbers -->
+                    <div class="grid-3">
+                        <div class="input-group"><label>Farmer ID</label><input type="text" id="f_id" readonly></div>
                         <div class="input-group"><label>RSBSA NO.</label><input type="text" id="f_rsbsa"></div>
-                        <div class="input-group"><label>Last Name</label><input type="text" id="f_lname" readonly>
-                        </div>
+                        <div class="input-group"><label>NCFRS ID</label><input type="text" id="f_ncfrs"></div>
+                    </div>
+
+                    <!-- ROW 2: Names -->
+                    <div class="grid-4" style="margin-top:10px;">
+                        <div class="input-group"><label>Last Name</label><input type="text" id="f_lname" readonly></div>
                         <div class="input-group"><label>First Name</label><input type="text" id="f_fname" readonly>
-                        </div>
-                        <div class="input-group"><label>Extension</label><input type="text" id="f_extname" readonly>
                         </div>
                         <div class="input-group"><label>Middle Name</label><input type="text" id="f_midname"
                                 placeholder="Middle Name"></div>
+                        <div class="input-group"><label>Extension</label><input type="text" id="f_extname" readonly>
+                        </div>
+                    </div>
+
+                    <!-- ROW 3: Demographics & Contact -->
+                    <div class="grid-3" style="margin-top:10px;">
                         <div class="input-group"><label>Sex</label>
                             <select id="f_sex">
                                 <option value="">--</option>
@@ -919,14 +938,16 @@
                         </div>
 
                         <div class="grid-2">
-                            <div class="input-group"><label>Planting Type</label><select id="f_top">
+                            <div class="input-group"><label>Planting Type</label><select id="f_top"
+                                    onchange="syncPlantingDate()">
                                     <option>Direct Seeding</option>
                                     <option>Transplanting</option>
                                 </select></div>
                             <div class="input-group"><label>Variety</label><input type="text" id="f_variety"></div>
                         </div>
                         <div class="grid-2" style="margin-top:12px;">
-                            <div class="input-group"><label>Date Sowing</label><input type="date" id="sow_date">
+                            <div class="input-group"><label>Date Sowing</label><input type="date" id="sow_date"
+                                    onchange="syncPlantingDate()">
                             </div>
                             <div class="input-group"><label>Date Planting</label><input type="date" id="f_plant">
                             </div>
@@ -1275,144 +1296,152 @@
             </div>
         </div>
 
-        <!-- View: About -->
-        <div id="view-about" class="content-area" style="display:none; padding:30px; max-width:800px; margin:0 auto;">
-            <div class="card"
-                style="padding:25px; margin-bottom:30px; text-align:center; border-left: 5px solid var(--primary);">
-                <h2 style="color:var(--primary); margin-top:0;">PCIC RO10 Digital Insurance Application</h2>
-                <p style="color:#666;">High-Performance Digital Enrollment Tool</p>
+        < <!-- PREPROCESSING HUB VIEW -->
+            <div id="view-preprocessing" class="content-area"
+                style="display:none; padding:0; height:100vh; overflow:hidden;">
+                <iframe src="Preprocessing_Hub/index.html"
+                    style="width: 100%; height: 100%; border: none; flex-grow: 1;"></iframe>
             </div>
 
-            <div class="card">
-                <h3 style="border-bottom:1px solid #eee; padding-bottom:10px; margin-top:0;">User Guide</h3>
-                <div
-                    style="height:400px; overflow-y:auto; padding:15px; background:#fafafa; border:1px solid #eee; border-radius:4px; font-size:13px; line-height:1.6;">
-                    <h4 style="margin-top:0;">1. Introduction</h4>
-                    <p>This application is a self-contained, offline-capable digital tool designed for PCIC
-                        Insurance
-                        Agents to enroll farmers, manage insurance applications, and generate standard PDF
-                        application
-                        forms. It runs entirely in your web browser and requires no internet connection once the
-                        data is
-                        loaded.</p>
-
-                    <h4>2. Getting Started</h4>
-                    <ul>
-                        <li><strong>Device:</strong> Laptop, Desktop PC, or Tablet.</li>
-                        <li><strong>Browser:</strong> Google Chrome (Recommended), Microsoft Edge, or Mozilla
-                            Firefox.
-                        </li>
-                        <li><strong>Files:</strong> You will receive a single file named
-                            <code>html_powerInsuranceApplication.html</code> along with the necessary CSV
-                            databases.
-                        </li>
-                    </ul>
-
-                    <h4>3. Data Setup (One-Time Setup)</h4>
-                    <p>Before you can start enrolling farmers, you must populate the local database.</p>
-                    <ol>
-                        <li>Navigate to the <strong>"⚙️ Database"</strong> tab in the left-hand sidebar.</li>
-                        <li>Under "System Management", locate the <strong>"Import Database (CSV)"</strong>
-                            section.
-                        </li>
-                        <li>
-                            <strong>Import Farmer Profiles:</strong>
-                            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
-                                <input type="file" accept=".csv" onchange="importData('profiles', this)">
-                                <button onclick="clearProfiles()"
-                                    style="padding:2px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;">🗑️
-                                    Clear Data</button>
-                            </div>
-                            <div class="import-status"></div>
-                        </li>
-                        <li>
-                            <strong>Import Insurance Records:</strong>
-                            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
-                                <input type="file" accept=".csv" onchange="importData('records', this)">
-                                <button onclick="clearHistory()"
-                                    style="padding:2px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;">🗑️
-                                    Clear Data</button>
-                            </div>
-                            <div class="import-status"></div>
-                        </li>
-                        <li>Verify that the status indicator at the bottom-left shows the number of records.
-                        </li>
-                    </ol>
-
-                    <h4>4. Configuring Insurance Rates</h4>
-                    <ul>
-                        <li><strong>Standard Crops (Rice/Corn):</strong> Default Amount Cover is
-                            <strong>25,000</strong>
-                            (Rice) and <strong>25,000</strong> (Corn). Change this in the "Database" tab if
-                            needed.
-                        </li>
-                        <li><strong>High Value Crops (HVC):</strong> The system comes pre-loaded with over 40
-                            common
-                            HVCs. You can add more in the "Database" tab.</li>
-                    </ul>
-
-                    <h4>5. Enrolling a Farmer</h4>
-                    <ol>
-                        <li>Click the <strong>"📝 Enrollment"</strong> tab.</li>
-                        <li>Search for the farmer by Name or ID.</li>
-                        <li>Select the farmer. A history popup will appear; choose "Renew" or "New Enrollment".
-                        </li>
-                        <li>Fill out the form details (Crop, Area, Dates, Location, Beneficiaries).</li>
-                        <li>Sign using the digital signature pad.</li>
-                        <li>Click <strong>"FINALIZE & DOWNLOAD FORM (PDF)"</strong>.</li>
-                    </ol>
-
-                    <h4>6. Generating Reports</h4>
-                    <p>Go to the <strong>"📊 Summary"</strong> tab to view your monthly performance tracker and
-                        export
-                        CSV logs or Summary PDF reports.</p>
-
-                    <p style="margin-top:20px; font-style:italic; color:#666;">For further assistance, review
-                        the
-                        full
-                        PDF manual provided separately.</p>
+            <!-- View: About -->
+            <div id="view-about" class="content-area"
+                style="display:none; padding:30px; max-width:800px; margin:0 auto;">
+                <div class="card"
+                    style="padding:25px; margin-bottom:30px; text-align:center; border-left: 5px solid var(--primary);">
+                    <h2 style="color:var(--primary); margin-top:0;">PCIC RO10 Digital Insurance Application</h2>
+                    <p style="color:#666;">High-Performance Digital Enrollment Tool</p>
                 </div>
-            </div>
 
-            <!-- Credits Footer (New Subtle Card) -->
-            <div class="card"
-                style="background:transparent; box-shadow:none; border:1px solid #eee; text-align:center; padding:15px; margin-top:20px;">
-                <p
-                    style="font-size:10px; font-weight:bold; letter-spacing:1px; color:#999; text-transform:uppercase; margin:0 0 10px 0;">
-                    Created By</p>
+                <div class="card">
+                    <h3 style="border-bottom:1px solid #eee; padding-bottom:10px; margin-top:0;">User Guide</h3>
+                    <div
+                        style="height:400px; overflow-y:auto; padding:15px; background:#fafafa; border:1px solid #eee; border-radius:4px; font-size:13px; line-height:1.6;">
+                        <h4 style="margin-top:0;">1. Introduction</h4>
+                        <p>This application is a self-contained, offline-capable digital tool designed for PCIC
+                            Insurance
+                            Agents to enroll farmers, manage insurance applications, and generate standard PDF
+                            application
+                            forms. It runs entirely in your web browser and requires no internet connection once the
+                            data is
+                            loaded.</p>
 
-                <div
-                    style="display:flex; justify-content:center; flex-wrap:wrap; gap:20px; font-size:12px; color:#444; margin-bottom:15px;">
-                    <div style="min-width:150px;">
-                        <strong>Engr. Dave U. Gepalago</strong><br>
-                        <span style="color:#777; font-size:11px;">Application UI & Architecture</span>
-                    </div>
-                    <div style="min-width:150px;">
-                        <strong>Carlos Rock Z. Diamante</strong><br>
-                        <span style="color:#777; font-size:11px;">Application Data & Configuration</span>
+                        <h4>2. Getting Started</h4>
+                        <ul>
+                            <li><strong>Device:</strong> Laptop, Desktop PC, or Tablet.</li>
+                            <li><strong>Browser:</strong> Google Chrome (Recommended), Microsoft Edge, or Mozilla
+                                Firefox.
+                            </li>
+                            <li><strong>Files:</strong> You will receive a single file named
+                                <code>html_powerInsuranceApplication.html</code> along with the necessary CSV
+                                databases.
+                            </li>
+                        </ul>
+
+                        <h4>3. Data Setup (One-Time Setup)</h4>
+                        <p>Before you can start enrolling farmers, you must populate the local database.</p>
+                        <ol>
+                            <li>Navigate to the <strong>"⚙️ Database"</strong> tab in the left-hand sidebar.</li>
+                            <li>Under "System Management", locate the <strong>"Import Database (CSV)"</strong>
+                                section.
+                            </li>
+                            <li>
+                                <strong>Import Farmer Profiles:</strong>
+                                <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                                    <input type="file" accept=".csv" onchange="importData('profiles', this)">
+                                    <button onclick="clearProfiles()"
+                                        style="padding:2px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;">🗑️
+                                        Clear Data</button>
+                                </div>
+                                <div class="import-status"></div>
+                            </li>
+                            <li>
+                                <strong>Import Insurance Records:</strong>
+                                <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                                    <input type="file" accept=".csv" onchange="importData('records', this)">
+                                    <button onclick="clearHistory()"
+                                        style="padding:2px 8px; font-size:11px; cursor:pointer; background:#ff4444; color:white; border:none; border-radius:3px;">🗑️
+                                        Clear Data</button>
+                                </div>
+                                <div class="import-status"></div>
+                            </li>
+                            <li>Verify that the status indicator at the bottom-left shows the number of records.
+                            </li>
+                        </ol>
+
+                        <h4>4. Configuring Insurance Rates</h4>
+                        <ul>
+                            <li><strong>Standard Crops (Rice/Corn):</strong> Default Amount Cover is
+                                <strong>25,000</strong>
+                                (Rice) and <strong>25,000</strong> (Corn). Change this in the "Database" tab if
+                                needed.
+                            </li>
+                            <li><strong>High Value Crops (HVC):</strong> The system comes pre-loaded with over 40
+                                common
+                                HVCs. You can add more in the "Database" tab.</li>
+                        </ul>
+
+                        <h4>5. Enrolling a Farmer</h4>
+                        <ol>
+                            <li>Click the <strong>"📝 Enrollment"</strong> tab.</li>
+                            <li>Search for the farmer by Name or ID.</li>
+                            <li>Select the farmer. A history popup will appear; choose "Renew" or "New Enrollment".
+                            </li>
+                            <li>Fill out the form details (Crop, Area, Dates, Location, Beneficiaries).</li>
+                            <li>Sign using the digital signature pad.</li>
+                            <li>Click <strong>"FINALIZE & DOWNLOAD FORM (PDF)"</strong>.</li>
+                        </ol>
+
+                        <h4>6. Generating Reports</h4>
+                        <p>Go to the <strong>"📊 Summary"</strong> tab to view your monthly performance tracker and
+                            export
+                            CSV logs or Summary PDF reports.</p>
+
+                        <p style="margin-top:20px; font-style:italic; color:#666;">For further assistance, review
+                            the
+                            full
+                            PDF manual provided separately.</p>
                     </div>
                 </div>
 
-                <div style="border-top:1px dashed #eee; padding-top:10px; font-size:11px; color:#888;">
-                    Assisted by </strong><em>Google Antigravity</em><br> Leveraging AI-driven scripting for
-                    automated
-                    insurance application.<br><br>
-                    <span style="font-size:10px;">Released: February 2026</span><br>
-                    <span style="font-size:10px;">Version <span id="lbl_version_footer"></span></span>
+                <!-- Credits Footer (New Subtle Card) -->
+                <div class="card"
+                    style="background:transparent; box-shadow:none; border:1px solid #eee; text-align:center; padding:15px; margin-top:20px;">
+                    <p
+                        style="font-size:10px; font-weight:bold; letter-spacing:1px; color:#999; text-transform:uppercase; margin:0 0 10px 0;">
+                        Created By</p>
+
+                    <div
+                        style="display:flex; justify-content:center; flex-wrap:wrap; gap:20px; font-size:12px; color:#444; margin-bottom:15px;">
+                        <div style="min-width:150px;">
+                            <strong>Engr. Dave U. Gepalago</strong><br>
+                            <span style="color:#777; font-size:11px;">Application UI & Architecture</span>
+                        </div>
+                        <div style="min-width:150px;">
+                            <strong>Carlos Rock Z. Diamante</strong><br>
+                            <span style="color:#777; font-size:11px;">Application Data & Configuration</span>
+                        </div>
+                    </div>
+
+                    <div style="border-top:1px dashed #eee; padding-top:10px; font-size:11px; color:#888;">
+                        Assisted by </strong><em>Google Antigravity</em><br> Leveraging AI-driven scripting for
+                        automated
+                        insurance application.<br><br>
+                        <span style="font-size:10px;">Released: February 2026</span><br>
+                        <span style="font-size:10px;">Version <span id="lbl_version_footer"></span></span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- DATABASE VIEW REMOVED -->
-
+            <!-- DATABASE VIEW REMOVED -->
 
 
 
-        <!-- FOOTER -->
-        <footer
-            style="text-align: center; padding: 10px; font-size: 10px; color: #999; margin-top: auto; border-top: 1px solid #eee; background: #fff; width: 100%;">
-            For PCIC and its partner Underwriters use Only.
-        </footer>
+
+            <!-- FOOTER -->
+            <footer
+                style="text-align: center; padding: 10px; font-size: 10px; color: #999; margin-top: auto; border-top: 1px solid #eee; background: #fff; width: 100%;">
+                For PCIC and its partner Underwriters use Only.
+            </footer>
     </div> <!-- End #workspace -->
 
     <div id="user-guide-modal" class="ug-modal-overlay" onclick="handleUGOverlayClick(event)">
@@ -1461,360 +1490,8 @@
     </div>
 
     <script src="pdf_templates.js"></script>
+
     <script src="script.js"></script>
-    <!-- PDF Calibration Overlay -->
-    <div id="calibrationOverlay">
-        <div class="cal-controls">
-            <div class="cal-btn-group">
-                <button onclick="toggleCalibration()">Close</button>
-                <div
-                    style="display: flex; align-items: center; gap: 5px; margin: 0 10px; border-left: 1px solid #ccc; padding-left: 10px;">
-                    <span style="font-size: 12px; font-weight: bold; color: #555;">Form:</span>
-                    <select id="calibLineSelect" onchange="onCalibLineChange()"
-                        style="padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
-                        <option value="Crop">Crop</option>
-                        <option value="ADSS">ADSS</option>
-                        <option value="Livestock">Livestock</option>
-                        <option value="Banca">Banca</option>
-                    </select>
-                </div>
-                <div
-                    style="display: flex; align-items: center; gap: 5px; margin: 0 20px 0 10px; border-left: 1px solid #ccc; padding-left: 10px;">
-                    <span style="font-size: 12px; font-weight: bold; color: #555;">Section:</span>
-                    <select id="calibSectionSelect" onchange="renderCalibration()"
-                        style="padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px;">
-                        <option value="all">All Fields</option>
-                        <option value="profile">Farmers Profile</option>
-                        <option value="form">Form Specifics</option>
-                    </select>
-                </div>
-                <button class="align-btn" onclick="alignSelectedX()">Align X</button>
-                <button class="align-btn" onclick="alignSelectedY()">Align Y</button>
-                <button onclick="clearSelection()">Clear Selection</button>
-            </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <label style="display: flex; align-items: center; gap: 5px; text-transform: none; font-size: 12px;">
-                    <input type="checkbox" onchange="toggleLabels(this)"> Show Labels
-                </label>
-                <button onclick="exportLayout()"
-                    style="background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb;">Download
-                    Layout</button>
-                <button onclick="triggerImportLayout()"
-                    style="background: #f1f8e9; color: #388e3c; border: 1px solid #dcedc8;">Upload
-                    Layout</button>
-                <input type="file" id="importLayoutInput" style="display: none;" accept=".json"
-                    onchange="importLayout(event)">
-                <button onclick="triggerImportTemplate()"
-                    style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;">Upload
-                    Template</button>
-                <input type="file" id="importTemplateInput" style="display: none;" accept="image/*"
-                    onchange="importTemplate(event)">
-                <button onclick="resetCalibration()" style="color: #c62828;">Reset</button>
-                <button class="btn btn-primary" onclick="saveCalibration()">Save Layout</button>
-            </div>
-        </div>
-        <div id="calWrapper">
-            <img id="calBgImage" class="cal-bg-img" src="" alt="PDF Template">
-            <!-- Dots will be rendered here -->
-        </div>
-    </div>
-
-
-
-
-
-    <!-- Camera Modal -->
-    <div id="camera-modal" class="camera-modal">
-        <h3 style="color: white; margin-bottom: 0;">Farmer Photo Capture</h3>
-        <div class="camera-container">
-            <video id="camera-video" autoplay playsinline></video>
-        </div>
-        <div class="camera-controls">
-            <button class="btn-camera close" onclick="closeCamera()">
-                <i class="fas fa-times"></i> Cancel
-            </button>
-            <button class="btn-camera capture" onclick="capturePhoto()">
-                <i class="fas fa-camera"></i> Capture Photo
-            </button>
-        </div>
-    </div>
-    <!-- User Guide Modal -->
-    <div id="user-guide-modal" class="ug-modal-overlay" onclick="handleUGOverlayClick(event)">
-        <div class="ug-modal-panel">
-            <div class="ug-modal-header">
-                <div><i class="fas fa-book-open" style="margin-right: 8px;"></i> User Guide</div>
-                <button class="ug-close-btn" onclick="closeUserGuideModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="ug-modal-body">
-                <iframe id="user-guide-iframe" class="ug-pdf-frame"></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- Release Notes Modal -->
-    <div id="release-notes-modal" class="ug-modal-overlay" onclick="handleRNOverlayClick(event)">
-        <div class="ug-modal-panel" style="max-width: 600px;">
-            <div class="ug-modal-header" style="background: #1976d2;">
-                <div><i class="fas fa-bullhorn" style="margin-right: 8px;"></i> What's New</div>
-                <button class="ug-close-btn" onclick="closeReleaseNotesModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="ug-modal-body" style="padding: 20px; background: #fafafa; overflow-y: auto;">
-                <h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">Version
-                    Release Notes</h3>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #1976d2; margin-bottom: 5px;">v1.3.3 (Latest) — 2026-02-25</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>[NOTICE] Broadcast announcement: App is under further testing — report any issues to the
-                            office promptly.</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.3.2 (2026-02-25)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>[FIX] Farm selector now correctly shows all four boundaries: N / S / E / W</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.3.1 (2026-02-25)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>[PERF] App startup faster — replaced 50 sequential DB calls with single bulkPut on first run
-                        </li>
-                        <li>[PERF] CSV import now uses streaming (step callback) — no more crashes on tablets with large
-                            files</li>
-                        <li>[PERF] Live progress bar during CSV import shows real percentage and row count</li>
-                        <li>[FIX] Import progress pre-scans file size in 64KB chunks for accurate % display</li>
-                        <li>[UX] Update banner redesigned as tablet-friendly toast card with 30-second auto-update
-                            countdown</li>
-                        <li>[UX] Farm selector now shows all four boundaries: N / S / E / W in each dropdown option</li>
-                        <li>[UX] CSV import progress modal with animated green bar, row count, and status label</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.3.4 (2026-02-27)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Replaced individual brochure modals with a single unified Google Drive folder embed</li>
-                        <li>Reduced application bundle size by removing static PDF viewers</li>
-                        <li>Fixed Reveal.js investor presentation scaling logic</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.3.0 (2026-02-25)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Full Home Dashboard UI redesign — Geospatial Digital Insurance aesthetic</li>
-                        <li>Satellite paddy field background with white vector grid overlay</li>
-                        <li>Glassmorphism hero card with vibrant yellow CTA and ghost secondary buttons</li>
-                        <li>Sidebar redesigned with SVG line icons, glassmorphism, and nav divider</li>
-                        <li>Gold announcement banner added above the app header</li>
-                        <li>Three-column footer: Location, Contact, Social</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.2.6 (2026-02-24)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Relocated brochure access to the Home Dashboard for better visibility</li>
-                        <li>Replaced long sidebar menu with a clean brochure selection modal</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.2.5 (2026-02-24)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Integrated Google Drive PDF Brochures into the dashboard</li>
-                        <li>Added Insurance Brochures sidebar section</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.2.3 (2026-02-24)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Updated individual PDF filename generation logic</li>
-                        <li>Filenames now dynamically adapt format per insurance line</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.2.2 (2026-02-24)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Added visual logic flow diagram</li>
-                        <li>Added new visual data storage flow diagram</li>
-                        <li>Implemented update notification banner</li>
-                        <li>Added version release notes modal</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #1976d2; margin-bottom: 5px;">v1.1.2 (2026-01-30)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Embedded the PCIC RO10 logo to the script</li>
-                        <li>Updated versioning format</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.0.2 (2026-01-29)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>[FIX] Replaced 'Suffix' with 'Middle Name'</li>
-                        <li>Fixed form save bugs</li>
-                        <li>Verified PDF & Summary generation stability</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.0.1 (2026-01-28)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>[FEAT] Added Farm Selector dropdown for existing farmers</li>
-                        <li>Fixed blank PDF generation issues</li>
-                    </ul>
-                </div>
-
-                <div style="margin-bottom: 10px;">
-                    <h4 style="color: #666; margin-bottom: 5px;">v1.0.0 (2026-01-01)</h4>
-                    <ul style="font-size: 13px; color: #555; margin-top: 5px; padding-left: 20px;">
-                        <li>Initial Release of the PCIC Application form</li>
-                    </ul>
-                </div>
-
-                <div style="margin-top: 25px; text-align: center;">
-                    <button onclick="closeReleaseNotesModal()" class="btn-submit"
-                        style="background: #1976d2; width: auto; padding: 10px 30px;">Awesome, let's work!</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- BROCHURE MODAL -->
-    <div id="brochure-selection-modal" class="ug-modal-overlay">
-        <div class="ug-modal-panel">
-            <div class="ug-modal-header">
-                <div><i class="fas fa-folder-open" style="margin-right: 8px;"></i> Insurance Brochures</div>
-                <button class="ug-close-btn"
-                    onclick="document.getElementById('brochure-selection-modal').style.display='none'"><i
-                        class="fas fa-times"></i></button>
-            </div>
-            <div class="ug-modal-body">
-                <iframe src="https://drive.google.com/embeddedfolderview?id=1KGdlyQWcCzwrc8gJO4d3w_T0PV0D53a5#grid"
-                    width="100%" height="100%" style="border: none;"></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADDRESS DATALISTS -->
-    <datalist id="province-list"></datalist>
-    <datalist id="municipality-list"></datalist>
-
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registered!', registration);
-
-                        // Check for updates every time the app loads
-                        registration.update();
-
-                        // Listen for a new service worker installing in the background
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            console.log('New Service Worker installing:', newWorker);
-
-                            newWorker.addEventListener('statechange', () => {
-                                // Once the new worker is installed and waiting to take over
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('New update available in background.');
-
-                                    // Show a browser alert/confirm to the user
-                                    if (confirm("A new version of the PCIC application is available!\n\nClick OK to refresh and apply the update now.")) {
-                                        // Tell the new service worker to take over immediately
-                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch(err => console.error('Service Worker registration failed: ', err));
-
-                // Listen for the controlling service worker changing (meaning the new one took over)
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (!refreshing) {
-                        refreshing = true;
-                        window.location.reload();
-                    }
-                });
-            });
-        }
-    </script>
-
-
-    <!-- ============================================================ -->
-    <!-- CSV IMPORT PROGRESS MODAL                                    -->
-    <!-- ============================================================ -->
-    <div id="csv-import-progress-modal" style="
-    display: none;
-    position: fixed; inset: 0; z-index: 99999;
-    background: rgba(0,0,0,0.72);
-    backdrop-filter: blur(6px);
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-">
-        <div style="
-        background: #fff;
-        border-radius: 20px;
-        padding: 36px 44px;
-        width: min(480px, 90vw);
-        box-shadow: 0 24px 64px rgba(0,0,0,0.35);
-        text-align: center;
-    ">
-            <!-- Icon -->
-            <div style="font-size: 2.4rem; margin-bottom: 10px;">📂</div>
-
-            <!-- Title -->
-            <h3 style="margin: 0 0 4px; font-size: 1.15rem; font-weight: 700; color: #1b5e20;">
-                Importing CSV Data
-            </h3>
-            <p id="csv-import-status-label" style="margin: 0 0 20px; font-size: 0.82rem; color: #666;">
-                Parsing file...
-            </p>
-
-            <!-- Progress bar track -->
-            <div style="
-            background: #e8f5e9;
-            border-radius: 999px;
-            height: 14px;
-            overflow: hidden;
-            margin-bottom: 10px;
-            border: 1px solid #c8e6c9;
-        ">
-                <div id="csv-import-progress-bar" style="
-                height: 100%;
-                width: 0%;
-                background: linear-gradient(90deg, #2e7d32, #66bb6a);
-                border-radius: 999px;
-                transition: width 0.25s ease;
-            "></div>
-            </div>
-
-            <!-- Stats row -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #555;">
-                <span id="csv-import-count-label">0 / 0 rows</span>
-                <span id="csv-import-pct-label" style="font-weight: 700; color: #2e7d32;">0%</span>
-            </div>
-
-            <p style="margin: 16px 0 0; font-size: 0.72rem; color: #aaa;">
-                Please wait — do not close this tab.
-            </p>
-        </div>
-    </div>
-    <!-- ============================================================ -->
-
 </body>
 
 </html>
