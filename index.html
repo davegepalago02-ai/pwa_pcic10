@@ -138,22 +138,7 @@
     </div>
 
     <div id="workspace">
-        <!-- ANNOUNCEMENT BAR -->
-        <div id="announcement-bar" class="announcement-bar">
-            <span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
-                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <span id="announcement-text">⚠️ <strong>This Application is under further testing for functionality
-                        enhancement.</strong> If you encountered issues in using the app, kindly report to the office
-                    promptly. Thank you.</span>
-            </span>
-            <button class="announcement-dismiss" onclick="this.parentElement.style.display='none'" aria-label="Dismiss"
-                title="Dismiss">&times;</button>
-        </div>
+
 
         <!-- UPDATE TOAST CARD (tablet-optimised) -->
         <div id="update-banner" style="
@@ -221,7 +206,32 @@
                         Initializing...</div>
                 </div>
             </div>
-            <img src="asset/sidebar_logo.png" class="app-logo" alt="PCIC Logo">
+
+            <div style="display:flex; align-items:center; gap:15px; -webkit-app-region: no-drag;">
+                <button onclick="toggleAppFullscreen()"
+                    style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;"
+                    title="Toggle Fullscreen">
+                    <i id="fullscreen-icon" class="fas fa-expand"></i>
+                </button>
+                <img src="asset/sidebar_logo.png" class="app-logo" alt="PCIC Logo">
+            </div>
+        </div>
+
+        <!-- ANNOUNCEMENT BAR MIGRATED BELOW HEADER -->
+        <div id="announcement-bar" class="announcement-bar">
+            <span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="announcement-text">⚠️ <strong>This Application is under further testing for functionality
+                        enhancement.</strong> If you encountered issues in using the app, kindly report to the office
+                    promptly. Thank you.</span>
+            </span>
+            <button class="announcement-dismiss" onclick="this.parentElement.style.display='none'" aria-label="Dismiss"
+                title="Dismiss">&times;</button>
         </div>
         <div class="month-tabs-row">
             <!-- GLOBAL DASHBOARD (Visible in all views) -->

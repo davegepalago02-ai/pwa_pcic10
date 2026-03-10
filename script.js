@@ -2412,11 +2412,38 @@ async function finalizeApplication(mode = 'complete') {
 
     await db.apps.add(data);
 
+    // --- User Guide Update ---
+    /* Document update process for guide handled in index.html */
+
+    // --- Global App Fullscreen Toggle ---
+    function toggleAppFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch((err) => {
+                console.error(`Error attempting to enable fullscreen: ${err.message} (${err.name})`);
+                alert("This device or browser does not support fullscreen mode.");
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    // Listen for fullscreen changes to update the icon
+    document.addEventListener('fullscreenchange', () => {
+        const icon = document.getElementById('fullscreen-icon');
+        if (icon) {
+            if (document.fullscreenElement) {
+                icon.className = 'fas fa-compress';
+            } else {
+                icon.className = 'fas fa-expand';
+            }
+        }
+    });
+
+
     // Also update the profile in the profiles table to persist the photo for future use
     if (currentFarmer && currentFarmer.FarmersID) {
         await db.profiles.put(currentFarmer);
     }
-
 
     // Refresh Dashboards
     renderLineStats();
@@ -4603,3 +4630,26 @@ function capturePhoto() {
     closeCamera();
 }
 
+// --- Global App Fullscreen Toggle ---
+function toggleAppFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch((err) => {
+            console.error(`Error attempting to enable fullscreen: ${err.message} (${err.name})`);
+            alert("This device or browser does not support fullscreen mode.");
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// Listen for fullscreen changes to update the icon
+document.addEventListener('fullscreenchange', () => {
+    const icon = document.getElementById('fullscreen-icon');
+    if (icon) {
+        if (document.fullscreenElement) {
+            icon.className = 'fas fa-compress';
+        } else {
+            icon.className = 'fas fa-expand';
+        }
+    }
+});

@@ -1294,8 +1294,26 @@ select:focus {
     position: sticky;
     top: 0;
     z-index: 1000;
-    height: 50px;
+    min-height: 50px;
     color: white;
+    -webkit-app-region: drag;
+}
+
+.header-left,
+.app-logo,
+.menu-btn {
+    -webkit-app-region: no-drag;
+}
+
+/* Proper Window Controls Overlay Handling for Desktop PWAs */
+@media (display-mode: window-controls-overlay) {
+    .app-header {
+        padding-top: calc(10px + env(titlebar-area-height, 30px));
+        /* Push right side content (logo) inwards to avoid Windows Control buttons */
+        padding-right: calc(20px + (100vw - env(titlebar-area-width, 100vw)));
+        /* Push left side content inwards for MacOS control buttons */
+        padding-left: calc(20px + env(titlebar-area-x, 0px));
+    }
 }
 
 .header-left {
