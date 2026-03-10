@@ -2008,9 +2008,12 @@ async function displayEnrollmentFormUI(history) {
     if (history && !Array.isArray(history)) {
         console.log('--- Loading history details via fillPolicyFromRecord ---');
         fillPolicyFromRecord(history);
+    } else if (!history) {
+        // Auto delete the previous farm details when new policy is clicked
+        if (typeof onFarmSelect === 'function') {
+            onFarmSelect("");
+        }
     }
-    // REMOVED: Auto-clearing logic that wiped manually entered policy details.
-    // Policy details now persist until explicitly saved or cleared via New Application.
 
     // Populate Farm Selector (Crucial for "Select from Existing" feature)
     // functionality now relies on global currentFarmerHistory

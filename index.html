@@ -5,7 +5,12 @@
   
   VERSION HISTORY//edit version in script.js APP_VERSION constant
   ------------------------------------------------------------------------------
-  v1.4.0 (2026-03-10)- [FEAT] Added Preprocessing Hub for batch processing of insurance applications.
+  v1.4.0 (2026-03-10)- [FEAT] Incorporate the Pre-processing hub.
+                        [FEAT] Added NCFRS input field.
+                        [FEAT] Allowed edit for farmer's address manually.
+                        [FEAT] Auto delete the previous farm details when new policy.
+                        [FEAT] Supported full screen signature.
+                        [FEAT] Put required field prompt before saving the application form.
   v1.3.4 (2026-02-27)- [FEAT] Replaced individual brochure modals with a single unified Google Drive folder view.
   v1.3.0 (2026-02-25)- [FEAT] Full Home Dashboard UI redesign: satellite background,
                         glassmorphism hero card, SVG sidebar icons, announcement banner,
@@ -1479,6 +1484,27 @@
                     </p>
                 </iframe>
             </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- RELEASE NOTES MODAL -->
+    <div id="release-notes-modal" class="rn-modal-overlay" onclick="handleRNOverlayClick(event)">
+        <div class="rn-modal">
+            <h3 style="color:var(--primary); margin-top:0;">What's New in v1.4.0 <span style="font-size:1.2em">🚀</span>
+            </h3>
+            <ul style="font-size:0.9rem; color:#333; line-height:1.5; padding-left:20px; text-align:left;">
+                <li><strong>NCFRS Input Field:</strong> Track NCFRS IDs directly in the form.</li>
+                <li><strong>Editable Address:</strong> Farmer's addresses can now be manually adjusted.</li>
+                <li><strong>Auto-Clear Farm Details:</strong> Previous farm details auto-delete upon new policy
+                    creation.</li>
+                <li><strong>Full Screen Signature:</strong> Support added for expanding signatures to fullscreen.</li>
+                <li><strong>Required Fields Prompt:</strong> Intelligent prompts ensure all critical data is supplied
+                    before saving.</li>
+                <li><strong>Pre-processing Hub:</strong> Incorporated advanced batch CSV generation hub.</li>
+            </ul>
+            <button class="btn-submit" onclick="closeReleaseNotesModal()"
+                style="margin-top:20px; width:100%; border-radius:8px;">Awesome, let's go!</button>
         </div>
     </div>
 

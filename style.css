@@ -67,6 +67,49 @@ body.sidebar-open #sidebar {
     transition: opacity 0.3s ease;
 }
 
+/* =============================================
+   RELEASE NOTES MODAL
+   ============================================= */
+.rn-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px);
+}
+
+.rn-modal-overlay.active {
+    display: flex;
+}
+
+.rn-modal {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: rnPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes rnPopIn {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 body.sidebar-open .sidebar-overlay {
     display: block;
     opacity: 1;
