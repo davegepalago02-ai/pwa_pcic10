@@ -31,7 +31,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PCIC Ro10 Digital Insurance Application v1.4.0</title>
+    <title>PCIC Ro10 Digital Insurance Application v1.4.1</title>
     <!-- Core Libraries (Offline) -->
     <script src="lib/dexie.js"></script>
     <script src="lib/papaparse.min.js"></script>
@@ -1216,9 +1216,11 @@
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <strong style="color:#c62828;">System Tools</strong>
-                        <p style="margin:0; font-size:11px; color:#b71c1c;">Force update the application to the latest version.</p>
+                        <p style="margin:0; font-size:11px; color:#b71c1c;">Force update the application to the latest
+                            version.</p>
                     </div>
-                    <button class="btn btn-secondary" style="background:#d32f2f; color:white; border:none;" onclick="hardRefreshApp()"> <i class="fas fa-sync-alt"></i> Hard Refresh </button>
+                    <button class="btn btn-secondary" style="background:#d32f2f; color:white; border:none;"
+                        onclick="hardRefreshApp()"> <i class="fas fa-sync-alt"></i> Hard Refresh </button>
                 </div>
             </div>
             <div class="card">
@@ -1517,18 +1519,11 @@
     <!-- RELEASE NOTES MODAL -->
     <div id="release-notes-modal" class="rn-modal-overlay" onclick="handleRNOverlayClick(event)">
         <div class="rn-modal">
-            <h3 style="color:var(--primary); margin-top:0;">What's New in v1.4.0 <span style="font-size:1.2em">🚀</span>
+            <h3 style="color:var(--primary); margin-top:0;">What's New in <span id="lbl_version_modal">v1.4.1</span> <span style="font-size:1.2em">🚀</span>
             </h3>
-            <ul style="font-size:0.9rem; color:#333; line-height:1.5; padding-left:20px; text-align:left;">
-                <li><strong>NCFRS Input Field:</strong> Track NCFRS IDs directly in the form.</li>
-                <li><strong>Editable Address:</strong> Farmer's addresses can now be manually adjusted.</li>
-                <li><strong>Auto-Clear Farm Details:</strong> Previous farm details auto-delete upon new policy
-                    creation.</li>
-                <li><strong>Full Screen Signature:</strong> Support added for expanding signatures to fullscreen.</li>
-                <li><strong>Required Fields Prompt:</strong> Intelligent prompts ensure all critical data is supplied
-                    before saving.</li>
-                <li><strong>Pre-processing Hub:</strong> Incorporated advanced batch CSV generation hub.</li>
-            </ul>
+            <div id="modal-release-notes-content" style="font-size:0.9rem; color:#333; line-height:1.5; text-align:left; max-height: 400px; overflow-y: auto;">
+                <!-- Content injected by app_updates.js -->
+            </div>
             <button class="btn-submit" onclick="closeReleaseNotesModal()"
                 style="margin-top:20px; width:100%; border-radius:8px;">Awesome, let's go!</button>
         </div>

@@ -6,6 +6,14 @@ const APP_ANNOUNCEMENT = `⚠️ <strong>This application is under it's final pi
 promptly. Thank you.`;
 
 const APP_RELEASE_NOTES = `
+<strong>v1.4.1 (2026-03-17)</strong>
+<ul style="margin-top: 5px; margin-bottom: 15px;">
+    <li>[FEAT] History redownload limits removed. Download any past application PDF.</li>
+    <li>[FEAT] Added 'Hard Refresh' button in settings for easy updates.</li>
+    <li>[FEAT] Added 'Coconut' to the High Value Crop default list (PHP 70,000 cover).</li>
+    <li>[FEAT] Separated announcement and release notes for easier maintenance.</li>
+</ul>
+
 <strong>v1.4.0 (2026-03-10)</strong>
 <ul style="margin-top: 5px; margin-bottom: 15px;">
     <li>[FEAT] Incorporate the Pre-processing hub.</li>
@@ -72,9 +80,15 @@ document.addEventListener('DOMContentLoaded', () => {
         announcementEl.innerHTML = APP_ANNOUNCEMENT;
     }
 
-    // Inject Release Notes
+    // Inject Release Notes (About Page)
     const releaseNotesEl = document.getElementById('update-release-notes-content');
     if (releaseNotesEl && APP_RELEASE_NOTES) {
         releaseNotesEl.innerHTML = APP_RELEASE_NOTES;
+    }
+
+    // Inject Release Notes (Popup Modal)
+    const modalNotesEl = document.getElementById('modal-release-notes-content');
+    if (modalNotesEl && APP_RELEASE_NOTES) {
+        modalNotesEl.innerHTML = APP_RELEASE_NOTES;
     }
 });
