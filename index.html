@@ -369,6 +369,32 @@
         </div>
         <!-- END FEEDBACK MODAL -->
 
+        <!-- BROCHURE SELECTION MODAL -->
+        <div id="brochure-selection-modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+            <div style="background:#fff; border-radius:12px; width:90%; max-width:900px; height:80vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+                <!-- Modal Header -->
+                <div style="background:var(--primary); color:white; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-file-pdf" style="font-size:1.2rem;"></i>
+                        <span style="font-weight:600; font-size:1rem;">PCIC RO10 Brochures</span>
+                    </div>
+                    <button onclick="document.getElementById('brochure-selection-modal').style.display='none'"
+                        style="background:rgba(255,255,255,0.15); color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer; font-size:1rem;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <!-- Embedded OneDrive Folder -->
+                <iframe
+                    src="https://pcicgov-my.sharepoint.com/:f:/g/personal/ro10msd_pcicgov_onmicrosoft_com/IgA582TrdgJ5QZXKvEPbP88jAbmf4gdD_6C-O9Xv7yJOvNM?e=GxaWJh&action=embedview"
+                    style="flex:1; border:none; width:100%;"
+                    title="PCIC RO10 Brochures"
+                    allow="fullscreen">
+                </iframe>
+            </div>
+        </div>
+        <!-- END BROCHURE SELECTION MODAL -->
+
         <!-- ENROLLMENT VIEW -->
 
         <div id="view-enrollment" class="content-area">
