@@ -54,7 +54,6 @@ The **PCIC RO10 Digital Insurance Application** is an offline-capable Progressiv
 | PWA | Web App Manifest + Service Worker | Offline caching and installation |
 | CSV Parsing | **PapaParse** | Parsing imported CSV data |
 | Signature | **signature_pad.js** | Digital signature capture |
-| QR Scanner | **qr-scanner.umd.min.js** | QR code scanning for farmer lookup |
 | Icons | **Font Awesome 6** (self-hosted) | UI icons throughout the app |
 | Hosting | **GitHub Pages** | Free static site deployment |
 
@@ -86,7 +85,6 @@ pwa_pcic10/
 │   ├── jspdf.plugin.autotable.min.js  # jsPDF table plugin
 │   ├── papaparse.min.js        # CSV parser
 │   ├── signature_pad.js        # Digital signature pad
-│   ├── qr-scanner.umd.min.js  # QR code scanner
 │   └── font-awesome/           # Font Awesome icons (self-hosted)
 │
 └── Preprocessing_Hub/          # Separate batch pre-processing sub-module
