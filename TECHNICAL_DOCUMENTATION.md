@@ -467,7 +467,36 @@ In **Settings**, individual data stores can be cleared with the 🗑️ buttons 
 
 ---
 
-## 12. Troubleshooting Guide
+## 12. Technical Deep Dives
+
+This section provides granular technical details on the application's internal systems to assist future developers in maintenance and troubleshooting.
+
+### 12.1 State Persistence Engine
+The application uses a "Safety First" persistence model to prevent data loss during hardware failures or accidental browser closures (common in field use).
+- **Auto-Save:** The function `saveEnrollmentState()` is triggered on every view transition and step change.
+- **dual-layer Storage:** 
+    - `localStorage`: Stores the current "in-progress" enrollment data (keys: `pcic_current_farmer`, `pcic_current_history`). This acts as a volatile cache.
+    - `IndexedDB (Dexie)`: Stores finalized applications and imported master data.
+- **Workflow Recovery:** On launch, the app checks `pcic_enrollment_active`. If `true`, it bypasses the dashboard and restores the form state from `localStorage` immediately.
+
+### 12.2 PDF Coordinate Mapping System
+Unlike traditional PDF generators that use absolute pixel positions, this app uses a **normalized percentage-based coordinate system** (0.0 to 100.0).
+- **Mapping Logic:** In `generateIndividualPDF()`, coordinates are converted to millimeters at runtime: `xMM = (cfg.x / 100) * 210`.
+- **Dynamic Calibration:** The "PDF Calibration" tool in Settings allows an admin to drag-and-drop labels on a canvas. These positions are saved as a JSON object in `db.settings`, overriding the hardcoded `DEFAULT_CONFIGS`. This allows supporting new form versions without modifying the source code.
+
+### 12.3 Signature Scaling & Resilience
+To ensure signatures remain clear across different screen sizes (phones vs. large tablets) and rotations:
+- **Ratio-Aware:** The `resizeCanvas()` function calculates the `devicePixelRatio` to ensure the canvas drawing buffer matches the physical screen resolution.
+- **Data Preservation:** Before a canvas is resized (e.g., when toggling "Full Screen" mode), the vector points of the signature are captured via `toData()`. After the resize, the points are mathematically scaled to the new dimensions and re-rendered via `fromData()`, preventing the signature from becoming "lost" or "stretched."
+
+### 12.4 Insurance Line UI Switching
+The `toggleInsuranceView()` function reconfigures the Single-Page Application (SPA) dynamically:
+- **DOM Filtering:** It hides/shows sections based on the `f_insurance_line` value.
+- **Validation Branching:** The `finalizeApplication()` function uses a conditional validation engine that selects which `requiredFields` array to check based on the active insurance line, ensuring users aren't prompted for "Banca" data while enrolling a "Rice" crop.
+
+---
+
+## 13. Troubleshooting Guide
 
 ### The app is not updating to the latest version
 **Cause:** The service worker has cached the old version.
@@ -556,4 +585,4 @@ git push origin main
 
 ---
 
-*This document was generated based on the codebase as of version 1.4.1 (March 18, 2026). Update this document whenever significant architectural changes are made.*
+*This document was generated based on the codebase as of version 1.4.1 (March 18, 2026).*
