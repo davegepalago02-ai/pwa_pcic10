@@ -186,14 +186,15 @@ The entire application is contained in **one HTML file** (`index.html`). All six
 
 ### 5.2 Available Views
 
-| View ID | View Name | Description |
+| View ID | Sidebar Label | Description |
 |---|---|---|
-| `welcome` | 🏠 Home Dashboard | Landing page with satellite hero, announcement banner, footer, brochure and user guide access |
-| `view-enrollment` | 📝 Enrollment | Farmer search, new applicant form, insurance selection, signature capture, and PDF generation |
-| `view-log` | 📋 History/Log | All recorded applications with redownload PDF option |
-| `view-summary` | 📊 Summary | Monthly performance dashboard, insurance line stats, CSV export |
-| `view-settings` | ⚙️ Settings | Underwriter name, CSV import, crop rates management, system tools |
-| `view-about` | ℹ️ About | App info, update release notes |
+| `welcome` | 🏠 Home | Landing page with satellite hero, announcement banner, 3-column footer, brochure and user guide access |
+| `enrollment` | 📝 Search Farmer | Farmer search by RSBSA ID, name, and address. Displays results and history before opening a form. |
+| `enrollment-form` | 📋 Enrollment Form | The actual insurance application form. Filled after selecting a farmer from the Search view. Includes signature capture and PDF generation. |
+| `summary` | 📊 Summary | Monthly performance dashboard, insurance line stats, CSV export of applications |
+| `settings` | ⚙️ Settings | Underwriter name, CSV import (profiles and records), crop rates management, system tools (Hard Refresh) |
+| `preprocessing` | 🗂️ Preprocessing Hub | Batch CSV generation for pre-processing slips and transmittal lists across all insurance lines |
+| `about` | ℹ️ Help / About | App info, update release notes log |
 
 ### 5.3 Insurance Line Hierarchy
 
@@ -224,12 +225,20 @@ Banca (Fisheries)
 
 ### 5.4 Enrollment Workflow
 
-1. **Search** — Underwriter searches for farmer by RSBSA ID, Last Name, First Name, or address
-2. **Select** — Select farmer from results; a history popup shows previous enrollments
-3. **Choose** — Select "Renew" (reuses previous farm data) or "New Enrollment" (blank form)
-4. **Fill** — Complete the enrollment form: coverage details, farm/vessel info, dates, beneficiaries, NCFRS ID
-5. **Sign** — Farmer captures digital signature on the signature pad
-6. **Save & Download** — Click "FINALIZE & DOWNLOAD FORM (PDF)"; the app validates required fields, saves to `db.apps`, and generates the PDF
+### 5.4 Enrollment Workflow (Simplified Flow)
+
+The application uses a **Simplified Flow** where picking a farmer goes straight to the enrollment form, removing legacy popups and redundant confirmation steps.
+
+1.  **Search** — Underwriter searches for a farmer by RSBSA ID, Name, or Address in the `enrollment` (Search Farmer) view.
+2.  **Pick Farmer** — Select a farmer from the results. This triggers `pickFarmer(id)`, which fetches both historical records from CSV imports and previous in-app applications.
+3.  **Auto-Load Form** — The view switches automatically to `enrollment-form`. 
+    -   **Farmer Info (Step 1)** is pre-filled. Profile farmers have locked IDs, while "Walk-In" applicants have editable IDs.
+4.  **Policy Selection (Step 2)** — The underwriter selects the **Insurance Line** (Crop, ADSS, Livestock, or Banca).
+5.  **Farm/Details (Step 3)** —
+    -   **For Crop:** A "Farm Selector" dropdown appears if the farmer has history. Selecting a previous farm automatically fills the Location, Area, and Boundaries.
+    -   **For other lines:** Specific detail sections (e.g., Vessel details for Banca) are filled.
+6.  **Signature (Step 4)** — The farmer reviews the summary and signs on the digital signature pad. A "Full Screen" mode is available for better capture on small devices.
+7.  **Finalize** — Click "FINALIZE & DOWNLOAD FORM (PDF)". The app validates inputs, saves the record to `db.apps` for history, and generates the finalized PDF form.
 
 ---
 
